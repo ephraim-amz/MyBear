@@ -1,19 +1,33 @@
 from typing import Any
 
+import numpy as np
+
 
 class Series:
+    def __init__(self, data, index, dtype, name):
+        self.index = index
+        self.data = data
+        self.dtype = dtype
+        self.name = name
+
     @property
     def iloc(self) -> Any:
         raise NotImplementedError
 
-    @property
     def min(self) -> Any:
-        raise NotImplementedError
+        raise min(self.data)
 
-    @property
     def max(self) -> Any:
-        raise NotImplementedError
+        max(self.data)
 
-    @property
     def count(self) -> Any:
-        raise NotImplementedError
+        return len(self.data)
+
+    def std(self) -> Any:
+        return np.std(list(self.data.values()))
+
+    def mean(self) -> Any:
+        return np.mean(list(self.data.values()))
+
+    def __repr__(self):
+        return f"Data : {self.data} "
