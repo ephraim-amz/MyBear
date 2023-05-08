@@ -41,14 +41,14 @@ class Series:
         """
           Récupère le plus petit élement numérique d'une Serie
         """
-        return min(self.data)
+        return min(self.data.values())
 
     def max(self) -> Any:
         """
           Récupère le plus grand élement numérique d'une Serie
         """
         # Gérer exception valeur non numérique
-        return max(self.data)
+        return max(self.data.values())
 
     def count(self) -> Any:
         """
