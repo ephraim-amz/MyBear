@@ -22,8 +22,12 @@ class Series:
         self.dtype = dtype
         self.columns = columns
 
-    def __getitem__(self, item):
-        return list(self.data.values())[item]
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            return Series({self.index[index]: list(self.data.values())[index]}, index=list(self.index[index]))
+        else:
+            data = {list(self.data.keys())[k]: list(self.data.values())[k] for k in range(index[0], index[1])}
+            return Series(data, index=list(self.data.keys())[index[0]: index[1]])
 
     @property
     def iloc(self) -> Any:
@@ -65,6 +69,7 @@ class Series:
         """
         # Gérer exception valeur non numérique
         return np.mean(list(self.data.values()))
+
 
     def __repr__(self) -> str:
         """
@@ -157,6 +162,7 @@ def read_csv(path: str, delimiter: str = ","):
         return dataframe
 
 
+# Todo : Gérer le paramètre orient pour la lecture du fichier
 def read_json(path: str, orient: str = "records"):
     if orient != "records" and orient != "columns":
         raise TypeError(f"Unexpected value for keyword argument : {orient}")
