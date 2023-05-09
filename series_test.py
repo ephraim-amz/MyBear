@@ -18,7 +18,7 @@ class SeriesTest(unittest.TestCase):
         """
         cls.serie = Series(range(10), name='Test')
 
-    def test_min(self):
+    def test_min(self) -> None:
         """
             Test case permettant de vérifier la validité de la fonction min() de la classe Series
             :param self: Référence à l'instance par laquelle la méthode est appelée
@@ -26,7 +26,7 @@ class SeriesTest(unittest.TestCase):
         """
         self.assertEqual(self.serie.min(), np.min(self.serie.data))
 
-    def test_max(self):
+    def test_max(self) -> None:
         """
             Test case permettant de vérifier la validité de la fonction max() de la classe Series
             :param self: Référence à l'instance par laquelle la méthode est appelée
@@ -34,7 +34,7 @@ class SeriesTest(unittest.TestCase):
         """
         self.assertEqual(self.serie.max(), np.max(self.serie.data))
 
-    def test_min_inferior_to_max(self):
+    def test_min_inferior_to_max(self) -> None:
         """
             Test case permettant de vérifier que la fonction min() retourne une valeur inférieure à la fonction max()
             :param self: Référence à l'instance par laquelle la méthode est appelée
@@ -42,7 +42,7 @@ class SeriesTest(unittest.TestCase):
         """
         self.assertLess(self.serie.min(), self.serie.max())
 
-    def test_count(self):
+    def test_count(self) -> None:
         """
             Test case permettant de vérifier que la fonction  count() retourne le nombre d'élements d'une série
             :param self: Référence à l'instance par laquelle la méthode est appelée
@@ -50,7 +50,7 @@ class SeriesTest(unittest.TestCase):
         """
         self.assertEqual(self.serie.count(), len(self.serie.data))
 
-    def test_std(self):
+    def test_std(self) -> None:
         """
             Test case permettant de vérifier que la fonction std() de la classe Series retourne la bonne valeur pour l'écart-type
             :param self: Référence à l'instance par laquelle la méthode est appelée
@@ -58,7 +58,7 @@ class SeriesTest(unittest.TestCase):
         """
         self.assertEqual(self.serie.std(), np.std(self.serie.data))
 
-    def test_mean(self):
+    def test_mean(self) -> None:
         """
             Test case permettant de vérifier que la fonction std() de la classe Series retourne la bonne valeur pour la moyenne
             :param self: Référence à l'instance par laquelle la méthode est appelée

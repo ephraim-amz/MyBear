@@ -13,7 +13,7 @@ class Series:
         lors de la création de la Serie (taille, nombre de valeurs manquantes et type de données)
     """
 
-    def __init__(self, data: Union[dict, range, List[Union[Any]]], name: str = None):
+    def __init__(self, data: Union[dict, range, List[Union[Any]]], name: str = None) -> None:
         """
             Fonction __init__ permettant de créer une nouvelle instance de la classe Series
             :param data: Les données qui peuvent être un dictionnaire, un range ou bien une liste d'élements de type divers
