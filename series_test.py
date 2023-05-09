@@ -16,7 +16,7 @@ class SeriesTest(unittest.TestCase):
             :param cls: Référence à la classe qui sera instanciée
             :return: None
         """
-        cls.serie = Series(range(10), name='Test', index=[chr(i) for i in range(ord('a'), ord(chr(97 + 10 - 1)) + 1)])
+        cls.serie = Series(range(10), name='Test')
 
     def test_min(self):
         """
