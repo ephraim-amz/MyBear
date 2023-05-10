@@ -44,6 +44,7 @@ class Series:
         if not isinstance(index, int) or not is_integer_list_with_two_elements:
             logging.log(logging.CRITICAL,
                         f"L'argument passé en paramètre est incorrect.\nType attendu : {list} ou {int}. Type reçu : {type(index)}")
+            raise ValueError
         else:
             if isinstance(self.data, dict):
                 if isinstance(index, int):
@@ -131,6 +132,8 @@ class Series:
     def __repr__(self) -> str:
         """
             Permet de représenter l'instance d'une Serie de manière plus lisisble pour l'utilisateur
+            :param self: L'instance par laquelle la méthode est appelé
+            :return: La chaîne de caractère représentant l'objet self
         """
         if isinstance(self.data, dict):
             p = "\n".join([f"{k}\t{v}" for k, v in self.data.items()])
@@ -141,9 +144,13 @@ class Series:
 
 
 class DataFrame:
+    """
+        Ensemble de Serie ayant toutes les mêmes listes d'index
+    """
+
     def __init__(self, *series: Series):
         """
-            Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame
+            Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir d'un ensemble de Series
             :param series: Les séries
         """
         self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for (index, serie) in
@@ -152,6 +159,11 @@ class DataFrame:
         self.data = [list(serie.data.values()) for serie in series]
 
     def __init__(self, colonnes, data):
+        """
+            Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir des colonnes et des données
+            :param colonnes: Les colonnes
+            :param data: Liste contenant une liste de liste d'élements même taille
+        """
         self.colonnes = colonnes
         self.data = data
 
@@ -206,22 +218,42 @@ class DataFrame:
           :raises: ValueError si une colonne n'est pas numérique
         """
         flattened_list = list(zip(*self.data))
-        stds = [np.max(flattened_element) for flattened_element in flattened_list]
+        stds = [np.std(flattened_element) for flattened_element in flattened_list]
         return stds
 
     def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]):
+        """
+            Permet de combiner et d'agréger plusieurs lignes d'un DataFrame en formant des groupes à partir d'une
+            ou plusieurs colonnes.
+            :param by: Le nom de la ou des colonnes sur lesquelles grouper
+            :param agg: La stratégie d'agrégation des colonnes
+            :return: Le nouvel objet DataFrame ayant été regroupé
+        """
         raise NotImplementedError
 
     def join(self, other, left_on: List[str] | str, right_on: List[str] | str, how: str = "left"):
+        """
+           Permet de combiner des données provenant de deux DataFrames
+              :param other: L'autre DataFrame
+              :param left_on: Le nom de la ou des colonnes de la dataframe de gauche (``self``)
+              :param right_on: Le nom de la ou des colonnes de la dataframe de droite (``other``)
+              :param how: La manière dont la jointure sera faite (``à gauche, à droite, intérieures et pleines``)
+              :return: Le nouvel objet DataFrame ayant été combiné avec une l'autre dataframe
+        """
         raise NotImplementedError
 
-    """
     def __repr__(self):
-        # TODO : Change function
-        p = '    '.join(self.colonnes) + "\n"
-        p += "\n".join([f"{'    '.join(row)}" for row in self.data])
-        return f"{p}\n"
-    """
+        """
+            Permet de représenter l'instance d'une DataFRame de manière plus lisisble pour l'utilisateur
+            :param self: L'instance par laquelle la méthode est appelé
+            :return: La chaîne de caractère représentant l'objet self
+        """
+        p = '\t'.join(self.colonnes)
+        for row in self.data:
+            p += "\n"
+            for element in row:
+                p += str(element) + "\t"
+        return f"{p} \n"
 
 
 def read_csv(path: str, delimiter: str = ","):
