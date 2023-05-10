@@ -156,7 +156,7 @@ class DataFrame:
         self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for (index, serie) in
                          enumerate(series)]
 
-        self.data = [list(serie.data.values()) for serie in series]
+        self.data = list(map(list, zip(*[list(serie.data.values()) for serie in series])))
 
     def __init__(self, colonnes, data):
         """
@@ -165,7 +165,7 @@ class DataFrame:
             :param data: Liste contenant une liste de liste d'élements même taille
         """
         self.colonnes = colonnes
-        self.data = data
+        self.data = list(map(list, zip(*data)))
 
     @property
     def iloc(self):
@@ -188,8 +188,9 @@ class DataFrame:
             Récupère le plus petit élement numérique d'une DataFrame
             :returns: L'élement le plus petit pour chaque colonne
         """
-        flattened_list = list(zip(*self.data))
-        minimums = [np.min(flattened_element) for flattened_element in flattened_list]
+        # print(self.data)
+
+        minimums = [np.min(element) for element in self.data]
         return minimums
 
     def max(self) -> Any:
@@ -197,8 +198,7 @@ class DataFrame:
             Récupère le plus grand élement numérique d'une DataFrame
             :returns: L'élement le plus grand pour chaque colonne
         """
-        flattened_list = list(zip(*self.data))
-        maximums = [np.max(flattened_element) for flattened_element in flattened_list]
+        maximums = [np.max(element) for element in self.data]
         return maximums
 
     def mean(self):
@@ -207,8 +207,7 @@ class DataFrame:
           :returns: La moyenne des éléments de chaque colonne
           :raises: ValueError si les éléments ne sont pas numériques
         """
-        flattened_list = list(zip(*self.data))
-        moyennes = [np.mean(flattened_element) for flattened_element in flattened_list]
+        moyennes = [np.mean(element) for element in self.data]
         return moyennes
 
     def std(self):
@@ -217,8 +216,7 @@ class DataFrame:
           :returns: L'écart-type de chaque colonne numérique
           :raises: ValueError si une colonne n'est pas numérique
         """
-        flattened_list = list(zip(*self.data))
-        stds = [np.std(flattened_element) for flattened_element in flattened_list]
+        stds = [np.std(element) for element in self.data]
         return stds
 
     def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]):

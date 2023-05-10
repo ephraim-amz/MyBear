@@ -16,10 +16,10 @@ class DataFrameTest(unittest.TestCase):
             :param cls: Référence à la classe qui sera instanciée
             :return: None
         """
-        # first_serie = Series({'a': 1, 'b': 2}, name='a')
-        # second_serie = Series({'a': 3, 'b': 4}, name='b')
-        cls.df = DataFrame(colonnes=['a', 'b'], data=[[1, 3], [9, 4]])
-        # cls.df = DataFrame(first_serie, second_serie)
+        first_serie = Series({'a': 1, 'b': 2}, name='a')
+        second_serie = Series({'a': 3, 'b': 4}, name='b')
+        # cls.df = DataFrame(colonnes=['a', 'b'], data=[[1, 3], [9, 4]])
+        cls.df = DataFrame(first_serie, second_serie)
 
     def test_min(self):
         """
