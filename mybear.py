@@ -3,7 +3,7 @@ import json
 import logging
 import csv
 import os
-from typing import List, Dict, Callable, Any, Union
+from typing import List, Dict, Callable, Any, Union, overload
 
 
 class Series:
@@ -66,6 +66,13 @@ class Series:
         """
         return lambda index: self[index]
 
+    def count(self) -> Any:
+        """
+          Récupère le nombre d'élements présent dans une Serie
+          :returns: Le nombre d'éléments le plus grand
+        """
+        return len(self.data)
+
     def min(self) -> Any:
         """
           Récupère le plus petit élement numérique d'une Serie
@@ -86,30 +93,6 @@ class Series:
         if isinstance(self.data, list):
             return max(self.data)
 
-    def count(self) -> Any:
-        """
-          Récupère le nombre d'élements présent dans une Serie
-          :returns: Le nombre d'éléments le plus grand
-        """
-        return len(self.data)
-
-    def std(self) -> Any:
-        """
-          Calcul de l'écart-type des élements d'une Serie
-          :returns: L'écart-type
-          :raises: ValueError si les éléments ne sont pas numériques
-        """
-        if isinstance(self.data, dict):
-            try:
-                return np.std(list(self.data.values()))
-            except Exception as e:
-                logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
-        if isinstance(self.data, list):
-            try:
-                return np.std(self.data)
-            except Exception as e:
-                logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
-
     def mean(self) -> Any:
         """
           Calcul de la moyenne des élements d'une Serie
@@ -128,6 +111,23 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"La moyenne ne peut pas être calculé car : {e}")
 
+    def std(self) -> Any:
+        """
+          Calcul de l'écart-type des élements d'une Serie
+          :returns: L'écart-type
+          :raises: ValueError si les éléments ne sont pas numériques
+        """
+        if isinstance(self.data, dict):
+            try:
+                return np.std(list(self.data.values()))
+            except Exception as e:
+                logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
+        if isinstance(self.data, list):
+            try:
+                return np.std(self.data)
+            except Exception as e:
+                logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
+
     def __repr__(self) -> str:
         """
             Permet de représenter l'instance d'une Serie de manière plus lisisble pour l'utilisateur
@@ -141,11 +141,19 @@ class Series:
 
 
 class DataFrame:
-    def __init__(self, series: Union[Series]):
+    def __init__(self, *series: Series):
         """
             Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame
             :param series: Les séries
         """
+        self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for (index, serie) in
+                         enumerate(series)]
+
+        self.data = [list(serie.data.values()) for serie in series]
+
+    def __init__(self, colonnes, data):
+        self.colonnes = colonnes
+        self.data = data
 
     @property
     def iloc(self):
@@ -156,29 +164,50 @@ class DataFrame:
         # logging.exception("NotImplementedError")
         raise NotImplementedError
 
-    def max(self) -> Any:
+    def count(self) -> Any:
         """
-                  Récupère le plus grand élement numérique d'une Serie
-                """
-        raise NotImplementedError
+          Récupère le nombre d'élements présent dans une DataFrame
+          :returns: Le nombre d'éléments le plus grand
+        """
+        return len(self.data)
 
     def min(self) -> Any:
         """
-                  Récupère le plus petit élement numérique d'une Serie
-                """
-        raise NotImplementedError
-
-    def mean(self) -> np.float64:
-        raise NotImplementedError
-
-    def std(self) -> np.float64:
-        raise NotImplementedError
-
-    def count(self) -> np.int64:
+            Récupère le plus petit élement numérique d'une DataFrame
+            :returns: L'élement le plus petit pour chaque colonne
         """
-                  Récupère le nombre d'élements présent dans une Serie
-                """
-        raise NotImplementedError
+        flattened_list = list(zip(*self.data))
+        minimums = [np.min(flattened_element) for flattened_element in flattened_list]
+        return minimums
+
+    def max(self) -> Any:
+        """
+            Récupère le plus grand élement numérique d'une DataFrame
+            :returns: L'élement le plus grand pour chaque colonne
+        """
+        flattened_list = list(zip(*self.data))
+        maximums = [np.max(flattened_element) for flattened_element in flattened_list]
+        return maximums
+
+    def mean(self):
+        """
+          Calcul de la moyenne de l'ensemble des colonnes d'une dataframe
+          :returns: La moyenne des éléments de chaque colonne
+          :raises: ValueError si les éléments ne sont pas numériques
+        """
+        flattened_list = list(zip(*self.data))
+        moyennes = [np.mean(flattened_element) for flattened_element in flattened_list]
+        return moyennes
+
+    def std(self):
+        """
+          Calcul de l'écart-type des élements d'une DataFrame
+          :returns: L'écart-type de chaque colonne numérique
+          :raises: ValueError si une colonne n'est pas numérique
+        """
+        flattened_list = list(zip(*self.data))
+        stds = [np.max(flattened_element) for flattened_element in flattened_list]
+        return stds
 
     def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]):
         raise NotImplementedError
@@ -186,11 +215,13 @@ class DataFrame:
     def join(self, other, left_on: List[str] | str, right_on: List[str] | str, how: str = "left"):
         raise NotImplementedError
 
+    """
     def __repr__(self):
         # TODO : Change function
-        p = '    '.join(self.columns) + "\n"
+        p = '    '.join(self.colonnes) + "\n"
         p += "\n".join([f"{'    '.join(row)}" for row in self.data])
-        return f"{p}\n{self.dtype}"
+        return f"{p}\n"
+    """
 
 
 def read_csv(path: str, delimiter: str = ","):
