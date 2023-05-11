@@ -3,7 +3,7 @@ import json
 import logging
 import csv
 import os
-from typing import List, Dict, Callable, Any, Union, overload
+from typing import List, Any, Union, Dict, Callable
 
 
 class Series:
@@ -13,7 +13,7 @@ class Series:
         lors de la création de la Serie (taille, nombre de valeurs manquantes et type de données)
     """
 
-    def __init__(self, data: Union[dict, range, List[Union[Any]]], name: str = None) -> None:
+    def __init__(self, data: Union[range, List[Union[Any]]], name: str = None) -> None:
         """
             Fonction __init__ permettant de créer une nouvelle instance de la classe Series
             :param data: Les données qui peuvent être un dictionnaire, un range ou bien une liste d'élements de type divers
@@ -23,12 +23,9 @@ class Series:
         if isinstance(data, range) or isinstance(data, list):
             self.data = list(data)
             self.index = range(len(data))
-        elif isinstance(data, dict):
-            self.data = data
-            self.index = range(len(data.keys()))
-        self.name = name
+            self.name = name
 
-    def set_name(self, name) -> None:
+    def __set_name(self, name) -> None:
         self.name = name
 
     def __getitem__(self, index: Union[List, int]):
@@ -148,24 +145,27 @@ class DataFrame:
         Ensemble de Serie ayant toutes les mêmes listes d'index
     """
 
-    def __init__(self, *series: Series):
+    def __init__(self, **kwargs):
         """
             Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir d'un ensemble de Series
             :param series: Les séries
         """
-        self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for (index, serie) in
-                         enumerate(series)]
 
-        self.data = list(map(list, zip(*[list(serie.data.values()) for serie in series])))
+        if kwargs.get("colonnes"):
+            self.colonnes = kwargs.get("colonnes")
+        if kwargs.get("data"):
+            self.data = kwargs.get("data")
 
-    def __init__(self, colonnes, data):
-        """
-            Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir des colonnes et des données
-            :param colonnes: Les colonnes
-            :param data: Liste contenant une liste de liste d'élements même taille
-        """
-        self.colonnes = colonnes
-        self.data = list(map(list, zip(*data)))
+        if kwargs.get("colonnes") and kwargs.get("data"):
+            self.data = list(self.data)
+
+        elif kwargs.get("series"):
+            series = kwargs.get("series")
+            if series:
+                self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for (index, serie) in
+                                 enumerate(series)]
+
+                self.data = [serie.data for serie in series]
 
     @property
     def iloc(self):
@@ -247,7 +247,7 @@ class DataFrame:
             :return: La chaîne de caractère représentant l'objet self
         """
         p = '\t'.join(self.colonnes)
-        for row in self.data:
+        for row in list(map(list, zip(*self.data))):
             p += "\n"
             for element in row:
                 p += str(element) + "\t"
@@ -262,7 +262,8 @@ def read_csv(path: str, delimiter: str = ","):
         with open(path, mode="r") as f:
             reader = csv.reader(f, delimiter=delimiter)
             p = [",".join(row) for row in reader]
-            dataframe = DataFrame(data=p[1:], columns=p[0], dtype=object, delimiter=delimiter)
+
+            dataframe = DataFrame(colonnes=p[0], data=[p[i].split(delimiter) for i in range(1, len(p))])
     except Exception as e:
         raise FileExistsError(f"File Loading error because of {e}")
     else:
@@ -275,10 +276,18 @@ def read_json(path: str, orient: str = "records"):
         raise TypeError(f"Unexpected value for keyword argument : {orient}")
     if not os.path.exists(path):
         raise FileNotFoundError(f"File {path} not found")
+
     try:
         with open(path, mode="r") as f:
             json_object = json.load(f)
-            json_dataframe = DataFrame(data=json_object, columns=list(json_object[0].keys()))
+            if orient == "records":
+                json_dataframe = DataFrame(
+                    data=[[obj[key] for obj in json_object] for key in list(json_object[0].keys())],
+                    colonnes=list(json_object[0].keys()))
+            if orient == "columns":
+                json_dataframe = DataFrame(
+                    data=[list(v.values()) for v in json_object.values()],
+                    colonnes=list(json_object.keys()))
     except Exception as excp:
         raise Exception(f"Another exception occured because {excp}")
     else:
