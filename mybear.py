@@ -16,7 +16,8 @@ class Series:
     def __init__(self, data: Union[range, List[Union[Any]]], name: str = None) -> None:
         """
             Fonction __init__ permettant de créer une nouvelle instance de la classe Series
-            :param data: Les données qui peuvent être un dictionnaire, un range ou bien une liste d'élements de type divers
+            :param data: Les données qui peuvent être un dictionnaire, un range ou bien une liste d'élements de type
+            divers
             :param name: Le nom qui sera attribué à la série (Valeur None par défaut)
             :return: Nouvel objet de type Serie
         """
@@ -38,22 +39,14 @@ class Series:
         """
         is_integer_list_with_two_elements = isinstance(index, list) and len(index) == 2 and all(
             isinstance(i, int) for i in index)
-        if not isinstance(index, int) or not is_integer_list_with_two_elements:
+        if not isinstance(index, int) and not is_integer_list_with_two_elements:
             logging.log(logging.CRITICAL,
-                        f"L'argument passé en paramètre est incorrect.\nType attendu : {list} ou {int}. Type reçu : {type(index)}")
+                        f"L'argument passé en paramètre est incorrect.\n"
+                        f"Type attendu : {list} ou {int}. Type reçu : {type(index)}")
             raise ValueError
-        else:
-            if isinstance(self.data, dict):
-                if isinstance(index, int):
-                    return Series({self.index[index]: list(self.data.values())[index]})
-                else:
-                    data = {list(self.data.keys())[k]: list(self.data.values())[k] for k in range(index[0], index[1])}
-                    return Series(data)
-            elif isinstance(self.data, list):
-                if isinstance(index, int):
-                    return Series({self.index[index]: self.data[index]})
-                else:
-                    return Series(self.data[index[0]: index[1]])
+        elif isinstance(index, int):
+            sd = Series(data=list(self.data)[index], name=self.name)
+            return sd
 
     @property
     def iloc(self) -> Any:
@@ -126,19 +119,6 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
-    def __repr__(self) -> str:
-        """
-            Permet de représenter l'instance d'une Serie de manière plus lisisble pour l'utilisateur
-            :param self: L'instance par laquelle la méthode est appelé
-            :return: La chaîne de caractère représentant l'objet self
-        """
-        if isinstance(self.data, dict):
-            p = "\n".join([f"{k}\t{v}" for k, v in self.data.items()])
-            return f"{p}\nName: {self.name}, dtype: {type(list(self.data.values())[0])}"
-        else:
-            p = "\n".join([f"{index}\t{value}" for (index, value) in zip(self.index, self.data)])
-            return f"{p}\nName: {self.name}, dtype: {type(self.data[0])}"
-
 
 class DataFrame:
     """
@@ -147,12 +127,17 @@ class DataFrame:
 
     def __init__(self, **kwargs):
         """
-            Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir d'un ensemble de Series
+            Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir d'un
+            ensemble de Series
             :param series: Les séries
         """
 
         if kwargs.get("colonnes"):
-            self.colonnes = kwargs.get("colonnes")
+            if not isinstance(kwargs.get("colonnes"), list):
+                logging.log(logging.ERROR,
+                            f"Type attendu pour le paramètre colonnes : {list}. Type reçu {type(kwargs.get('colonnes'))} ")
+            else:
+                self.colonnes = kwargs.get("colonnes")
         if kwargs.get("data"):
             self.data = kwargs.get("data")
 
@@ -227,7 +212,18 @@ class DataFrame:
             :param agg: La stratégie d'agrégation des colonnes
             :return: Le nouvel objet DataFrame ayant été regroupé
         """
-        raise NotImplementedError
+
+        is_in_list = [True if element in self.colonnes else False for element in by]
+
+        if False in is_in_list:
+            raise ValueError
+        else:
+            p = []
+            for i in range(len(by)):
+                p.append(agg.get(by[i])(self.data[self.colonnes.index(by[i])]))
+            # self.data[self.colonnes.index(by[0])]
+            return p
+        # raise NotImplementedError
 
     def join(self, other, left_on: List[str] | str, right_on: List[str] | str, how: str = "left"):
         """
@@ -238,6 +234,14 @@ class DataFrame:
               :param how: La manière dont la jointure sera faite (``à gauche, à droite, intérieures et pleines``)
               :return: Le nouvel objet DataFrame ayant été combiné avec une l'autre dataframe
         """
+        if not isinstance(other, DataFrame):
+            logging.log(logging.CRITICAL, f"Type attendu pour other : {DataFrame}. Got {type(other)}")
+        how_list = ["left", "right", "inner", "outer"]
+        if not isinstance(left_on, list) or isinstance(right_on, list):
+            logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
+        if how not in how_list:
+            logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
+
         raise NotImplementedError
 
     def __repr__(self):
@@ -261,9 +265,10 @@ def read_csv(path: str, delimiter: str = ","):
     try:
         with open(path, mode="r") as f:
             reader = csv.reader(f, delimiter=delimiter)
-            p = [",".join(row) for row in reader]
-
-            dataframe = DataFrame(colonnes=p[0], data=[p[i].split(delimiter) for i in range(1, len(p))])
+            p = [f"{delimiter}".join(row).split(delimiter) for row in reader]
+            columns = p[0]
+            p = list(map(list, zip(*p[1:])))
+            dataframe = DataFrame(colonnes=columns, data=p)
     except Exception as e:
         raise FileExistsError(f"File Loading error because of {e}")
     else:
@@ -288,7 +293,7 @@ def read_json(path: str, orient: str = "records"):
                 json_dataframe = DataFrame(
                     data=[list(v.values()) for v in json_object.values()],
                     colonnes=list(json_object.keys()))
-    except Exception as excp:
-        raise Exception(f"Another exception occured because {excp}")
+    except Exception as exc:
+        raise Exception(f"Another exception occured because {exc}")
     else:
         return json_dataframe
