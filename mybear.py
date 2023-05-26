@@ -119,6 +119,9 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
+    def __str__(self):
+        return " ".join([self.name, str(self.data)])
+
 
 class DataFrame:
     """
@@ -242,7 +245,18 @@ class DataFrame:
         if how not in how_list:
             logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
 
-        raise NotImplementedError
+        left_join = []
+        if how == "left":
+            for d1 in self.data:
+                for d2 in other.data:
+                    if d1["left_on"] == d2["right_on"]:
+                        join_dict = {**d1, **d2}  # Fusionne les deux dictionnaires
+                        left_join.append(join_dict)
+
+        for data in left_join:
+            print(data)
+
+        return left_join
 
     def __repr__(self):
         """
