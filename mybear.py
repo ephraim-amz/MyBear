@@ -145,15 +145,16 @@ class DataFrame:
             self.data = kwargs.get("data")
 
         if kwargs.get("colonnes") and kwargs.get("data"):
+            # TODO: convertir en Serie
             self.data = list(self.data)
 
         elif kwargs.get("series"):
-            series = kwargs.get("series")
-            if series:
+            series_list = kwargs.get("series")
+            if series_list:
                 self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for (index, serie) in
-                                 enumerate(series)]
+                                 enumerate(series_list)]
 
-                self.data = [serie.data for serie in series]
+                self.data = {colonne: serie for colonne, serie in zip(self.colonnes, series_list)}
 
     @property
     def iloc(self):
