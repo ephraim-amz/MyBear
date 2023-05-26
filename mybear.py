@@ -141,12 +141,14 @@ class DataFrame:
                             f"Type attendu pour le paramètre colonnes : {list}. Type reçu {type(kwargs.get('colonnes'))} ")
             else:
                 self.colonnes = kwargs.get("colonnes")
-        if kwargs.get("data"):
-            self.data = kwargs.get("data")
 
         if kwargs.get("colonnes") and kwargs.get("data"):
             # TODO: convertir en Serie
-            self.data = list(self.data)
+
+            self.data = {}
+            for colonne, serie in zip(self.colonnes, kwargs.get("data")):
+                self.data.update({colonne:Series(data=serie, name=colonne)})
+            #self.data = {colonne: serie for colonne, serie in zip(self.colonnes, kwargs.get("data"))}
 
         elif kwargs.get("series"):
             series_list = kwargs.get("series")
