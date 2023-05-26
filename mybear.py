@@ -147,8 +147,8 @@ class DataFrame:
 
             self.data = {}
             for colonne, serie in zip(self.colonnes, kwargs.get("data")):
-                self.data.update({colonne:Series(data=serie, name=colonne)})
-            #self.data = {colonne: serie for colonne, serie in zip(self.colonnes, kwargs.get("data"))}
+                self.data.update({colonne: Series(data=serie, name=colonne)})
+            # self.data = {colonne: serie for colonne, serie in zip(self.colonnes, kwargs.get("data"))}
 
         elif kwargs.get("series"):
             series_list = kwargs.get("series")
@@ -224,6 +224,16 @@ class DataFrame:
         if False in is_in_list:
             raise ValueError
         else:
+            # Pour chaque colonne, regarder les valeurs uniques de la colonne sélectionné lors du by
+
+            # p = [self.data[self.colonnes.index(by[i])] for i in range(len(by))] Lorsque by aura plusieurs colonnes
+            unique_cols = list(set(self.data[self.colonnes.index(by[0])]))
+            print()
+            # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
+            # TODO : Effectuer la fonction d'aggrégation pour chaque colonne
+
+            # TODO : Créer un nouveau dataframe à partir de chaque nouvelle colonne
+            # TODO : Retourner cet instance nouvellement créée
             p = []
             for i in range(len(by)):
                 p.append(agg.get(by[i])(self.data[self.colonnes.index(by[i])]))
@@ -268,7 +278,7 @@ class DataFrame:
             :return: La chaîne de caractère représentant l'objet self
         """
         p = '\t'.join(self.colonnes)
-        for row in list(map(list, zip(*self.data))):
+        for row in list(map(list, zip(**self.data))):
             p += "\n"
             for element in row:
                 p += str(element) + "\t"
@@ -292,7 +302,6 @@ def read_csv(path: str, delimiter: str = ","):
         return dataframe
 
 
-# Todo : Gérer le paramètre orient pour la lecture du fichier
 def read_json(path: str, orient: str = "records"):
     if orient != "records" and orient != "columns":
         raise TypeError(f"Unexpected value for keyword argument : {orient}")
