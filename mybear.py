@@ -119,8 +119,9 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
-    def __str__(self):
-        return " ".join([self.name, str(self.data)])
+    def __repr__(self):
+        p = "{}\n\n{}".format(self.name, "\n".join(str(val) for val in self.data))
+        return p
 
 
 class DataFrame:
@@ -143,12 +144,8 @@ class DataFrame:
                 self.colonnes = kwargs.get("colonnes")
 
         if kwargs.get("colonnes") and kwargs.get("data"):
-            # TODO: convertir en Serie
-
-            self.data = {}
-            for colonne, serie in zip(self.colonnes, kwargs.get("data")):
-                self.data.update({colonne: Series(data=serie, name=colonne)})
-            # self.data = {colonne: serie for colonne, serie in zip(self.colonnes, kwargs.get("data"))}
+            self.data = {colonne: Series(data=serie, name=colonne) for colonne, serie in
+                         zip(self.colonnes, kwargs.get("data"))}
 
         elif kwargs.get("series"):
             series_list = kwargs.get("series")
@@ -273,15 +270,12 @@ class DataFrame:
 
     def __repr__(self):
         """
-            Permet de représenter l'instance d'une DataFRame de manière plus lisisble pour l'utilisateur
+            Permet de représenter l'instance d'une DataFrame de manière plus lisisble pour l'utilisateur
             :param self: L'instance par laquelle la méthode est appelé
             :return: La chaîne de caractère représentant l'objet self
         """
-        p = '\t'.join(self.colonnes)
-        for row in list(map(list, zip(**self.data))):
-            p += "\n"
-            for element in row:
-                p += str(element) + "\t"
+        p = ''.join([serie.__repr__() for serie in list(self.data.values())])
+
         return f"{p} \n"
 
 
