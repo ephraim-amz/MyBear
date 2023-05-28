@@ -52,7 +52,8 @@ class SeriesTest(unittest.TestCase):
 
     def test_std(self) -> None:
         """
-            Test case permettant de vérifier que la méthode std() de la classe Series retourne la bonne valeur pour l'écart-type
+            Test case permettant de vérifier que la méthode std() de la classe Series retourne la bonne valeur
+            pour l'écart-type
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
@@ -60,7 +61,8 @@ class SeriesTest(unittest.TestCase):
 
     def test_mean(self) -> None:
         """
-            Test case permettant de vérifier que la méthode std() de la classe Series retourne la bonne valeur pour la moyenne
+            Test case permettant de vérifier que la méthode std() de la classe Series retourne la bonne valeur
+            pour la moyenne
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """

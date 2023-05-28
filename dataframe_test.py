@@ -1,6 +1,6 @@
 import unittest
 
-from mybear import Series, DataFrame
+from mybear import Series, DataFrame, read_json, read_csv
 import numpy as np
 
 
@@ -12,7 +12,7 @@ class DataFrameTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """
-            Méthode permettant de créer une instance de classe commune pour tous les tests
+            Méthode de clase permettant de créer des variables qui seront utilisés pour tous les tests
             :param cls: Référence à la classe qui sera instanciée
             :return: None
         """
@@ -23,59 +23,58 @@ class DataFrameTest(unittest.TestCase):
 
     def test_min_colonnes(self):
         """
-            Test case permettant de vérifier la validité de la méthode min() de l'instance de la classe DataFrame initialisée
+            Test case permettant de vérifier la validité de la méthode min() de l'instance de la classe DataFrame
+            initialisée
             avec le constructeur colonnes
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.min(element) for element in self.df_colonnes.data], self.df_colonnes.min())
+        self.assertEqual([np.min(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.min())
 
-    def test_minimumns_equals(self):
+    def test_min_series(self):
         """
-            Test case permettant de vérifier la validité de la méthode min() de l'instance de la classe DataFrame initialisée
-            avec le constructeur colonnes
+            Test case permettant de vérifier la validité de la méthode min() de l'instance de la classe DataFrame
+            initialisée avec le constructeur series
+            :param self: Référence à l'instance par laquelle la méthode est appelée
+            :return: None
+        """
+        self.assertEqual([np.min(element.data) for element in self.df_series.data.values()], self.df_series.min())
+
+    def test_minimums_equals(self):
+        """
+            Test case permettant de vérifier qu'un dataframe initialisé avec une liste
+            et un autre initialisé avec colonnes + valeurs renvoyent la même valeur pour la méthode `min()`
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
         self.assertEqual(self.df_series.min(), self.df_colonnes.min())
 
-
-    def test_min_series(self):
-        """
-            Test case permettant de vérifier la validité de la méthode min() de l'instance de la classe DataFrame initialisée
-            avec le constructeur series
-            :param self: Référence à l'instance par laquelle la méthode est appelée
-            :return: None
-        """
-        self.assertEqual([np.min(element) for element in self.df_series.data], self.df_series.min())
-
     def test_max_series(self):
         """
-            Test case permettant de vérifier la validité de la méthode max() de l'instance de la classe DataFrame initialisée
-            avec le constructeur series
+            Test case permettant de vérifier la validité de la méthode max() de l'instance de la classe DataFrame
+            initialisée avec le constructeur series
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.max(element) for element in self.df_series.data], self.df_series.max())
+        self.assertEqual([np.max(element.data) for element in self.df_series.data.values()], self.df_series.max())
 
+    def test_max_colonnes(self):
+        """
+            Test case permettant de vérifier la validité de la méthode max() de l'instance de la classe DataFrame
+            initialisée avec le constructeur colonnes
+            :param self: Référence à l'instance par laquelle la méthode est appelée
+            :return: None
+        """
+        self.assertEqual([np.max(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.max())
 
     def test_maximums_equals(self):
         """
-            Test case permettant de vérifier la validité de la méthode min() de l'instance de la classe DataFrame initialisée
-            avec le constructeur colonnes
+            Test case permettant de vérifier qu'un dataframe initialisé avec une liste
+            et un autre initialisé avec colonnes + valeurs renvoyent la même valeur pour la méthode `max()`
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
         self.assertEqual(self.df_series.max(), self.df_colonnes.max())
-
-    def test_max_colonnes(self):
-        """
-            Test case permettant de vérifier la validité de la méthode max() de l'instance de la classe DataFrame initialisée
-            avec le constructeur colonnes
-            :param self: Référence à l'instance par laquelle la méthode est appelée
-            :return: None
-        """
-        self.assertEqual([np.max(element) for element in self.df_colonnes.data], self.df_colonnes.max())
 
     def test_min_inferior_to_max(self):
         """
@@ -83,7 +82,8 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertLess([1, 2], [3, 4])
+        self.assertLess(self.df_colonnes.min(), self.df_colonnes.max())
+        self.assertLess(self.df_series.min(), self.df_series.max())
 
     def test_count_series(self):
         """
@@ -91,7 +91,7 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual(self.df_series.count(), 2)
+        self.assertEqual(len(self.df_series.data), self.df_series.count())
 
     def test_count_colonnes(self):
         """
@@ -99,7 +99,16 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual(self.df_colonnes.count(), 2)
+        self.assertEqual(len(self.df_colonnes.data), self.df_colonnes.count())
+
+    def test_count_equals(self):
+        """
+            Test case permettant de vérifier qu'un dataframe initialisé avec une liste
+            et un autre initialisé avec colonnes + valeurs renvoyent la même valeur pour la méthode `count()`
+            :param self: Référence à l'instance par laquelle la méthode est appelée
+            :return: None
+        """
+        self.assertEqual(self.df_series.count(), self.df_colonnes.count())
 
     def test_std_series(self):
         """
@@ -107,7 +116,7 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.std(element) for element in self.df_series.data], self.df_series.std())
+        self.assertEqual([np.std(element.data) for element in self.df_series.data.values()], self.df_series.std())
 
     def test_std_colonnes(self):
         """
@@ -115,20 +124,28 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.std(element) for element in self.df_colonnes.data], self.df_colonnes.std())
+        self.assertEqual([np.std(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.std())
+
+    def test_std_equals(self):
+        self.assertEqual(self.df_series.std(), self.df_colonnes.std())
 
     def test_mean_colonnes(self):
         """
-            Test case permettant de vérifier que la méthode mean() de la classe DataFrame retourne la bonne valeur pour la moyenne
+            Test case permettant de vérifier que la méthode mean() de la classe DataFrame retourne la bonne valeur
+            pour la moyenne
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.mean(element) for element in self.df_colonnes.data], self.df_colonnes.mean())
+        self.assertEqual([np.mean(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.mean())
 
     def test_mean_equals(self):
+        """
+            Test case permettant de vérifier qu'un dataframe initialisé avec une liste
+            et un autre initialisé avec colonnes + valeurs renvoyent la même valeur pour la méthode `mean()`
+            :param self: Référence à l'instance par laquelle la méthode est appelée
+            :return: None
+        """
         self.assertEqual(self.df_series.mean(), self.df_colonnes.mean())
-
-
 
     def test_mean_series(self):
         """
@@ -136,15 +153,21 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.mean(element) for element in self.df_series.data], self.df_series.mean())
+        self.assertEqual([np.mean(element.data) for element in self.df_series.data.values()], self.df_series.mean())
 
     def test_groupby(self):
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(TypeError):
             self.df_colonnes.groupby(by=None, agg=None)
 
     def test_join(self):
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(AttributeError):
             self.df_colonnes.join(other=None, right_on=None, left_on=None)
+
+    def test_same_data_json_orient(self):
+        df_orient_records = read_json(path="oriented_records.json")
+        df_orient_columns = read_json(path="oriented_columns.json", orient="columns")
+        self.assertEqual(df_orient_columns.data, df_orient_records.data)
+        self.assertEqual(df_orient_columns.colonnes, df_orient_records.colonnes)
 
 
 if __name__ == '__main__':

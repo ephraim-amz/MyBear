@@ -169,7 +169,7 @@ class DataFrame:
           Récupère le nombre d'élements présent dans une DataFrame
           :returns: Le nombre d'éléments le plus grand
         """
-        return len(self.data)
+        return self.data.get(list(self.data.keys())[0]).count()
 
     def min(self) -> Any:
         """
@@ -178,7 +178,7 @@ class DataFrame:
         """
         # print(self.data)
 
-        minimums = [np.min(element) for element in self.data]
+        minimums = [np.min(element.data) for element in self.data.values()]
         return minimums
 
     def max(self) -> Any:
@@ -186,7 +186,7 @@ class DataFrame:
             Récupère le plus grand élement numérique d'une DataFrame
             :returns: L'élement le plus grand pour chaque colonne
         """
-        maximums = [np.max(element) for element in self.data]
+        maximums = [np.max(element.data) for element in self.data.values()]
         return maximums
 
     def mean(self):
@@ -195,7 +195,7 @@ class DataFrame:
           :returns: La moyenne des éléments de chaque colonne
           :raises: ValueError si les éléments ne sont pas numériques
         """
-        moyennes = [np.mean(element) for element in self.data]
+        moyennes = [np.mean(element.data) for element in self.data.values()]
         return moyennes
 
     def std(self):
@@ -204,7 +204,7 @@ class DataFrame:
           :returns: L'écart-type de chaque colonne numérique
           :raises: ValueError si une colonne n'est pas numérique
         """
-        stds = [np.std(element) for element in self.data]
+        stds = [np.std(element.data) for element in self.data.values()]
         return stds
 
     def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]):
