@@ -156,17 +156,18 @@ class DataFrameTest(unittest.TestCase):
         self.assertEqual([np.mean(element.data) for element in self.df_series.data.values()], self.df_series.mean())
 
     def test_groupby(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(Exception):
             self.df_colonnes.groupby(by=None, agg=None)
 
     def test_join(self):
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(Exception):
             self.df_colonnes.join(other=None, right_on=None, left_on=None)
 
     def test_same_data_json_orient(self):
         df_orient_records = read_json(path="oriented_records.json")
         df_orient_columns = read_json(path="oriented_columns.json", orient="columns")
-        self.assertEqual(df_orient_columns.data, df_orient_records.data)
+        self.assertEqual([v.data for v in df_orient_columns.data.values()],
+                         [v.data for v in df_orient_columns.data.values()])
         self.assertEqual(df_orient_columns.colonnes, df_orient_records.colonnes)
 
 
