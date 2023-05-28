@@ -119,9 +119,9 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
-    def __repr__(self):
-        p = "{}\n\n{}".format(self.name, "\n".join(str(val) for val in self.data))
-        return p
+    # def __repr__(self):
+        # p = "{}\n\n{}".format(self.name, "\n".join(str(val) for val in self.data))
+       # return p
 
 
 class DataFrame:
@@ -224,7 +224,11 @@ class DataFrame:
             # Pour chaque colonne, regarder les valeurs uniques de la colonne sélectionné lors du by
 
             # p = [self.data[self.colonnes.index(by[i])] for i in range(len(by))] Lorsque by aura plusieurs colonnes
-            unique_cols = list(set(self.data[self.colonnes.index(by[0])]))
+            # unique_cols = list(set(self.data[self.colonnes.index(by[0])]))
+            new_serie = Series(data=[], name=by[0])
+            for val in self.data.get(by[0]).data:
+                if val not in new_serie.data:
+                    new_serie.data.append(val)
             print()
             # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
             # TODO : Effectuer la fonction d'aggrégation pour chaque colonne
@@ -268,15 +272,16 @@ class DataFrame:
 
         return left_join
 
-    def __repr__(self):
+
+    #def __repr__(self):
         """
             Permet de représenter l'instance d'une DataFrame de manière plus lisisble pour l'utilisateur
             :param self: L'instance par laquelle la méthode est appelé
             :return: La chaîne de caractère représentant l'objet self
         """
-        p = ''.join([serie.__repr__() for serie in list(self.data.values())])
+       # p = ''.join([serie.__repr__() for serie in list(self.data.values())])
 
-        return f"{p} \n"
+       # return f"{p} \n"
 
 
 def read_csv(path: str, delimiter: str = ","):
@@ -286,10 +291,22 @@ def read_csv(path: str, delimiter: str = ","):
     try:
         with open(path, mode="r") as f:
             reader = csv.reader(f, delimiter=delimiter)
-            p = [f"{delimiter}".join(row).split(delimiter) for row in reader]
-            columns = p[0]
-            p = list(map(list, zip(*p[1:])))
-            dataframe = DataFrame(colonnes=columns, data=p)
+            lines = [f"{delimiter}".join(row).split(delimiter) for row in reader]
+            columns = lines[0]
+            lines = list(map(list, zip(*lines[1:])))
+            for line in lines:
+                for index, element in enumerate(line):
+                    if element.isdigit() or element.isnumeric():
+                        line[index] = int(element)
+                    if element[0] == '-' and element[1:].isdigit():
+                        line[index] = -int(element[1:])
+                    elif '.' in element and element[element.index(".")+1:].isnumeric():
+                        try:
+                            line[index] = float(element)
+                        except ValueError:
+                            logging.log(logging.CRITICAL, "Value can not be converted to float")
+
+            dataframe = DataFrame(colonnes=columns, data=lines)
     except Exception as e:
         raise FileExistsError(f"File Loading error because of {e}")
     else:
