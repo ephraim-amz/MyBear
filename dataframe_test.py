@@ -29,7 +29,9 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.min(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.min())
+        minimum_colonnes = [Series(data=[np.max(element.data)], name=name) for name, element in
+                            self.df_colonnes.data.items()]
+        self.assertEqual(DataFrame(series=minimum_colonnes).__repr__(), self.df_colonnes.max().__repr__())
 
     def test_min_series(self):
         """
@@ -38,7 +40,9 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.min(element.data) for element in self.df_series.data.values()], self.df_series.min())
+        minimum_series = [Series(data=[np.max(element.data)], name=name) for name, element in
+                          self.df_series.data.items()]
+        self.assertEqual(DataFrame(series=minimum_series).__repr__(), self.df_series.max().__repr__())
 
     def test_minimums_equals(self):
         """
@@ -47,7 +51,7 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual(self.df_series.min(), self.df_colonnes.min())
+        self.assertEqual(self.df_series.min().__repr__(), self.df_colonnes.min().__repr__())
 
     def test_max_series(self):
         """
@@ -56,7 +60,9 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.max(element.data) for element in self.df_series.data.values()], self.df_series.max())
+        maximums_colonnes = [Series(data=[np.max(element.data)], name=name) for name, element in
+                             self.df_series.data.items()]
+        self.assertEqual(DataFrame(series=maximums_colonnes).__repr__(), self.df_series.max().__repr__())
 
     def test_max_colonnes(self):
         """
@@ -65,7 +71,9 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.max(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.max())
+        maximums_series = [Series(data=[np.max(element.data)], name=name) for name, element in
+                           self.df_colonnes.data.items()]
+        self.assertEqual(DataFrame(series=maximums_series).__repr__(), self.df_colonnes.max().__repr__())
 
     def test_maximums_equals(self):
         """
@@ -74,7 +82,7 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual(self.df_series.max(), self.df_colonnes.max())
+        self.assertEqual(self.df_series.max().__repr__(), self.df_colonnes.max().__repr__())
 
     def test_min_inferior_to_max(self):
         """
@@ -82,8 +90,8 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertLess(self.df_colonnes.min(), self.df_colonnes.max())
-        self.assertLess(self.df_series.min(), self.df_series.max())
+        self.assertLess(self.df_colonnes.min().__repr__(), self.df_colonnes.max().__repr__())
+        self.assertLess(self.df_series.min().__repr__(), self.df_series.max().__repr__())
 
     def test_count_series(self):
         """
@@ -116,7 +124,9 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.std(element.data) for element in self.df_series.data.values()], self.df_series.std())
+        std_series = [Series(data=[np.std(element.data)], name=name) for name, element in
+                      self.df_series.data.items()]
+        self.assertEqual(DataFrame(series=std_series).__repr__(), self.df_series.std().__repr__())
 
     def test_std_colonnes(self):
         """
@@ -124,10 +134,12 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.std(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.std())
+        std_colonnes = [Series(data=[np.std(element.data)], name=name) for name, element in
+                        self.df_colonnes.data.items()]
+        self.assertEqual(DataFrame(series=std_colonnes).__repr__(), self.df_colonnes.std().__repr__())
 
     def test_std_equals(self):
-        self.assertEqual(self.df_series.std(), self.df_colonnes.std())
+        self.assertEqual(self.df_series.std().__repr__(), self.df_colonnes.std().__repr__())
 
     def test_mean_colonnes(self):
         """
@@ -136,7 +148,9 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.mean(element.data) for element in self.df_colonnes.data.values()], self.df_colonnes.mean())
+        mean_colonnes = [Series(data=[np.mean(element.data)], name=name) for name, element in
+                         self.df_colonnes.data.items()]
+        self.assertEqual(DataFrame(series=mean_colonnes).__repr__(), self.df_colonnes.mean().__repr__())
 
     def test_mean_equals(self):
         """
@@ -145,7 +159,7 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual(self.df_series.mean(), self.df_colonnes.mean())
+        self.assertEqual(self.df_series.mean().__repr__(), self.df_colonnes.mean().__repr__())
 
     def test_mean_series(self):
         """
@@ -153,22 +167,25 @@ class DataFrameTest(unittest.TestCase):
             :param self: Référence à l'instance par laquelle la méthode est appelée
             :return: None
         """
-        self.assertEqual([np.mean(element.data) for element in self.df_series.data.values()], self.df_series.mean())
+        mean_series = [Series(data=[np.mean(element.data)], name=name) for name, element in
+                       self.df_series.data.items()]
+        self.assertEqual(DataFrame(series=mean_series).__repr__(), self.df_series.mean().__repr__())
 
     def test_groupby(self):
         with self.assertRaises(Exception):
-            self.df_colonnes.groupby(by=None, agg=None)
+            self.df_colonnes.groupby(by="price", agg={"price": min})
 
     def test_join(self):
         with self.assertRaises(Exception):
-            self.df_colonnes.join(other=None, right_on=None, left_on=None)
+            self.df_colonnes.join(other=self.df_series, right_on="price", left_on="date")
 
     def test_same_data_json_orient(self):
         df_orient_records = read_json(path="oriented_records.json")
         df_orient_columns = read_json(path="oriented_columns.json", orient="columns")
         self.assertEqual([v.data for v in df_orient_columns.data.values()],
-                         [v.data for v in df_orient_columns.data.values()])
+                         [v.data for v in df_orient_records.data.values()])
         self.assertEqual(df_orient_columns.colonnes, df_orient_records.colonnes)
+        self.assertEqual(df_orient_columns.__repr__(), df_orient_records.__repr__())
 
 
 if __name__ == '__main__':

@@ -156,7 +156,8 @@ class DataFrame:
         if kwargs.get("colonnes"):
             if not isinstance(kwargs.get("colonnes"), list):
                 logging.log(logging.ERROR,
-                            f"Type attendu pour le paramètre colonnes : {list}. Type reçu {type(kwargs.get('colonnes'))} ")
+                            f"Type attendu pour le paramètre colonnes : {list}. "
+                            f"Type reçu {type(kwargs.get('colonnes'))} ")
             else:
                 self.colonnes = kwargs.get("colonnes")
 
@@ -232,6 +233,9 @@ class DataFrame:
             :return: Le nouvel objet DataFrame ayant été regroupé
         """
 
+        if not isinstance(by, (list, str)):
+            raise Exception
+
         is_in_list = [True if element in self.colonnes else False for element in by]
 
         if False in is_in_list:
@@ -270,7 +274,7 @@ class DataFrame:
         if not isinstance(other, DataFrame):
             logging.log(logging.CRITICAL, f"Type attendu pour other : {DataFrame}. Got {type(other)}")
         how_list = ["left", "right", "inner", "outer"]
-        if not isinstance(left_on, list) or isinstance(right_on, list):
+        if not isinstance(left_on, (list, str)) and not isinstance(right_on, (list, str)):
             logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
         if how not in how_list:
             logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
