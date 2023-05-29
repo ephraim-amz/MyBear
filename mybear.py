@@ -26,7 +26,12 @@ class Series:
             self.index = range(len(data))
             self.name = name
 
-    def __set_name(self, name) -> None:
+    def __set_name(self, name:str) -> None:
+        """
+            Setter permettant de définir l'attribut name de la classe Series
+            :param name: Le futur nom de l'instance Series
+            :return: Nouvel objet de type Serie indexée
+        """
         self.name = name
 
     def __getitem__(self, index: Union[List, int]):
@@ -120,11 +125,19 @@ class Series:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
     def __repr__(self):
+        """
+            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe Series
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe Series
+        """
         str_builder = ["{}\t{}".format(i, val) for i, val in enumerate(self.data)]
         str_builder.append(f"Name: {self.name}, dtype: {type(self.data[0])}")
         return "\n".join(str_builder)
 
     def __len__(self):
+        """
+            Redéfinition de la méthode __len__ permettant d'utiliser len() pour une instance de la classe Series
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe Series
+        """
         return self.count()
 
 
@@ -143,8 +156,7 @@ class DataFrame:
         if kwargs.get("colonnes"):
             if not isinstance(kwargs.get("colonnes"), list):
                 logging.log(logging.ERROR,
-                            f"Type attendu pour le paramètre colonnes : {list}. Type reçu "
-                            f"{type(kwargs.get('colonnes'))} ")
+                            f"Type attendu pour le paramètre colonnes : {list}. Type reçu {type(kwargs.get('colonnes'))} ")
             else:
                 self.colonnes = kwargs.get("colonnes")
 
@@ -278,6 +290,10 @@ class DataFrame:
         return left_join
 
     def __repr__(self):
+        """
+            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe DataFrame
+        """
         data = [d.data for d in self.data.values()]
         p = "\t".join(self.colonnes)
         for index, element in enumerate(zip(*data)):
@@ -287,10 +303,20 @@ class DataFrame:
         return p
 
     def __len__(self):
+        """
+            Redéfinition de la méthode __len__ permettant d'utiliser len() pour une instance de la classe DataFrame
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe DataFrame
+        """
         return self.count()
 
 
 def read_csv(path: str, delimiter: str = ","):
+    """
+        Fonction permettant de créer une nouvelle instance de la classe DataFrame à partir d'un fichier csv
+        :param path: Le chemin relatif, absolu, ou tout simplement le nom du fichier csv
+        :param delimiter: Le séparateur d'éléments au sein du fichier (par défaut une virgule)
+        :returns : Une nouvelle instance de la classe DataFrame à partir des données du fichier
+    """
     if not os.path.exists(path):
         raise FileNotFoundError(f"File {path} not found")
 
@@ -320,6 +346,12 @@ def read_csv(path: str, delimiter: str = ","):
 
 
 def read_json(path: str, orient: str = "records"):
+    """
+          Fonction permettant de créer une nouvelle instance de la classe DataFrame à partir d'un fichier JSON
+          :param path: Le chemin relatif, absolu, ou tout simplement le nom du fichier csv
+          :param orient: L'orientation du fichier JSON (records par défaut)
+          :returns : Une nouvelle instance de la classe DataFrame à partir des données du fichier
+      """
     if orient != "records" and orient != "columns":
         raise TypeError(f"Unexpected value for keyword argument : {orient}")
     if not os.path.exists(path):
