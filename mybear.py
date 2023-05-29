@@ -26,7 +26,7 @@ class Series:
             self.index = range(len(data))
             self.name = name
 
-    def __set_name(self, name:str) -> None:
+    def __set_name(self, name: str) -> None:
         """
             Setter permettant de définir l'attribut name de la classe Series
             :param name: Le futur nom de l'instance Series
@@ -193,18 +193,17 @@ class DataFrame:
             Récupère le plus petit élement numérique d'une DataFrame
             :returns: L'élement le plus petit pour chaque colonne
         """
-        # print(self.data)
 
-        minimums = [np.min(element.data) for element in self.data.values()]
-        return minimums
+        minimums = [Series(data=[element.min()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=minimums)
 
     def max(self) -> Any:
         """
             Récupère le plus grand élement numérique d'une DataFrame
             :returns: L'élement le plus grand pour chaque colonne
         """
-        maximums = [np.max(element.data) for element in self.data.values()]
-        return maximums
+        maximums = [Series(data=[element.max()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=maximums)
 
     def mean(self):
         """
@@ -212,8 +211,8 @@ class DataFrame:
           :returns: La moyenne des éléments de chaque colonne
           :raises: ValueError si les éléments ne sont pas numériques
         """
-        moyennes = [np.mean(element.data) for element in self.data.values()]
-        return moyennes
+        moyennes = [Series(data=[element.mean()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=moyennes)
 
     def std(self):
         """
@@ -221,8 +220,8 @@ class DataFrame:
           :returns: L'écart-type de chaque colonne numérique
           :raises: ValueError si une colonne n'est pas numérique
         """
-        stds = [np.std(element.data) for element in self.data.values()]
-        return stds
+        stds = [Series(data=[element.std()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=stds)
 
     def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]):
         """
@@ -298,7 +297,7 @@ class DataFrame:
         p = "\t".join(self.colonnes)
         for index, element in enumerate(zip(*data)):
             p += "\n"
-            p += str(index) + " " + '   '.join(str(item).ljust(10) for item in element)
+            p += str(index) + " " + '   '.join(str(item).ljust(len(self.colonnes)) for item in element)
 
         return p
 
