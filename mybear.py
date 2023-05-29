@@ -119,9 +119,13 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
-    # def __repr__(self):
-        # p = "{}\n\n{}".format(self.name, "\n".join(str(val) for val in self.data))
-       # return p
+    def __repr__(self):
+        str_builder = ["{}\t{}".format(i, val) for i, val in enumerate(self.data)]
+        str_builder.append(f"Name: {self.name}, dtype: {type(self.data[0])}")
+        return "\n".join(str_builder)
+
+    def __len__(self):
+        return self.count()
 
 
 class DataFrame:
@@ -272,16 +276,17 @@ class DataFrame:
 
         return left_join
 
+    def __repr__(self):
+        data = [d.data for d in self.data.values()]
+        p = "\t".join(self.colonnes)
+        for index, element in enumerate(zip(*data)):
+            p += "\n"
+            p += str(index) + " " + '   '.join(str(item).ljust(10) for item in element)
 
-    #def __repr__(self):
-        """
-            Permet de représenter l'instance d'une DataFrame de manière plus lisisble pour l'utilisateur
-            :param self: L'instance par laquelle la méthode est appelé
-            :return: La chaîne de caractère représentant l'objet self
-        """
-       # p = ''.join([serie.__repr__() for serie in list(self.data.values())])
+        return p
 
-       # return f"{p} \n"
+    def __len__(self):
+        return self.count()
 
 
 def read_csv(path: str, delimiter: str = ","):
@@ -300,7 +305,7 @@ def read_csv(path: str, delimiter: str = ","):
                         line[index] = int(element)
                     if element[0] == '-' and element[1:].isdigit():
                         line[index] = -int(element[1:])
-                    elif '.' in element and element[element.index(".")+1:].isnumeric():
+                    elif '.' in element and element[element.index(".") + 1:].isnumeric():
                         try:
                             line[index] = float(element)
                         except ValueError:
