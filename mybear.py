@@ -143,7 +143,8 @@ class DataFrame:
         if kwargs.get("colonnes"):
             if not isinstance(kwargs.get("colonnes"), list):
                 logging.log(logging.ERROR,
-                            f"Type attendu pour le paramètre colonnes : {list}. Type reçu {type(kwargs.get('colonnes'))} ")
+                            f"Type attendu pour le paramètre colonnes : {list}. Type reçu "
+                            f"{type(kwargs.get('colonnes'))} ")
             else:
                 self.colonnes = kwargs.get("colonnes")
 
