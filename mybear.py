@@ -3,7 +3,9 @@ import json
 import logging
 import csv
 import os
-from typing import List, Any, Union, Dict, Callable
+from typing import List, Any, Union, Dict, Callable, Tuple
+
+logging.basicConfig(level=logging.INFO)
 
 
 class Series:
@@ -26,10 +28,15 @@ class Series:
             self.index = range(len(data))
             self.name = name
 
-    def __set_name(self, name) -> None:
+    def __set_name(self, name: str) -> None:
+        """
+            Setter permettant de définir l'attribut name de la classe Series
+            :param name: Le futur nom de l'instance Series
+            :return: Nouvel objet de type Serie indexée
+        """
         self.name = name
 
-    def __getitem__(self, index: Union[List, int]):
+    def __getitem__(self, index: Union[slice, int]):
         """
             Fonction permettant de d'indexer l'instance d'une classe, nécessaire pour la propriété iloc
             (Fonction non optimale car la notation est object.iloc(index) ou object.iloc([start,stop])
@@ -37,16 +44,12 @@ class Series:
             :param index: Index
             :return: Nouvel objet de type Serie indexée
         """
-        is_integer_list_with_two_elements = isinstance(index, list) and len(index) == 2 and all(
-            isinstance(i, int) for i in index)
-        if not isinstance(index, int) and not is_integer_list_with_two_elements:
-            logging.log(logging.CRITICAL,
-                        f"L'argument passé en paramètre est incorrect.\n"
-                        f"Type attendu : {list} ou {int}. Type reçu : {type(index)}")
-            raise ValueError
-        elif isinstance(index, int):
-            sd = Series(data=list(self.data)[index], name=self.name)
-            return sd
+        if isinstance(index, int):
+            return Series(data=[self.data[index]], name=self.name if self.name is not None else "Undefined")
+        elif isinstance(index, slice):
+            return Series(data=self.data[index], name=self.name if self.name is not None else "Undefined")
+        else:
+            logging.log(logging.ERROR, f"Type attendu : {slice} ou {int}. Reçu : {type(index)}")
 
     @property
     def iloc(self) -> Any:
@@ -55,7 +58,7 @@ class Series:
             :raise: IndexError: Si l'index n'est pas un int ou l'index est invalide
             :return: lambda appelant la fonction __getitem__ définit précédemment
         """
-        return lambda index: self[index]
+        return self
 
     def count(self) -> Any:
         """
@@ -120,11 +123,19 @@ class Series:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
     def __repr__(self):
+        """
+            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe Series
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe Series
+        """
         str_builder = ["{}\t{}".format(i, val) for i, val in enumerate(self.data)]
         str_builder.append(f"Name: {self.name}, dtype: {type(self.data[0])}")
         return "\n".join(str_builder)
 
     def __len__(self):
+        """
+            Redéfinition de la méthode __len__ permettant d'utiliser len() pour une instance de la classe Series
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe Series
+        """
         return self.count()
 
 
@@ -143,7 +154,8 @@ class DataFrame:
         if kwargs.get("colonnes"):
             if not isinstance(kwargs.get("colonnes"), list):
                 logging.log(logging.ERROR,
-                            f"Type attendu pour le paramètre colonnes : {list}. Type reçu {type(kwargs.get('colonnes'))} ")
+                            f"Type attendu pour le paramètre colonnes : {list}. "
+                            f"Type reçu {type(kwargs.get('colonnes'))} ")
             else:
                 self.colonnes = kwargs.get("colonnes")
 
@@ -159,14 +171,50 @@ class DataFrame:
 
                 self.data = {colonne: serie for colonne, serie in zip(self.colonnes, series_list)}
 
+    def __getitem__(self, index: Tuple[Union[int, slice], Union[int, slice]]):
+        if not isinstance(index, tuple):
+            logging.exception("Mauvais type d'index")
+            raise IndexError(f"Type d'index attendu : {tuple}. Type reçu : {type(index)}")
+        row_start = None
+        column_start = None
+        row_stop = None
+        column_stop = None
+
+        if isinstance(index[0], slice):
+            row_start = index[0].start
+            row_stop = index[0].stop
+        elif isinstance(index[0], int):
+            row_start = index[0]
+        if isinstance(index[1], slice):
+            column_start = index[1].start
+            column_stop = index[1].stop
+        elif isinstance(index[1], int):
+            column_start = index[1]
+
+        if isinstance(index[0], int) and isinstance(index[1], int):
+            return list(self.data.values())[row_start].data[column_start]
+        elif isinstance(index[0], slice) and isinstance(index[1], int):
+            return Series(data=list(self.data.values())[column_start].data[row_start:row_stop],
+                          name=list(self.data.keys())[column_start])
+        elif isinstance(index[0], int) and isinstance(index[1], slice):
+            data = [d.data[row_start] for d in self.data.values()]
+            columns = self.colonnes[column_start:column_stop]
+            series = [Series(data=[val], name=name) for val, name in zip(data, columns)]
+            return DataFrame(series=series)
+        elif isinstance(index[0], slice) and isinstance(index[1], slice):
+            data = [d.data[row_start:row_stop] for d in self.data.values()]
+            columns = self.colonnes[column_start:column_stop]
+            series = [Series(data=[series_data] if not isinstance(series_data, list) else series_data, name=series_name)
+                      for series_data, series_name in zip(data, columns)]
+            return DataFrame(series=series)
+
     @property
     def iloc(self):
         """
             Propriété de la classe DataFrame permettant une indexation basée sur la position des éléments
             :return:
         """
-        # logging.exception("NotImplementedError")
-        raise NotImplementedError
+        return self
 
     def count(self) -> Any:
         """
@@ -180,18 +228,17 @@ class DataFrame:
             Récupère le plus petit élement numérique d'une DataFrame
             :returns: L'élement le plus petit pour chaque colonne
         """
-        # print(self.data)
 
-        minimums = [np.min(element.data) for element in self.data.values()]
-        return minimums
+        minimums = [Series(data=[element.min()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=minimums)
 
     def max(self) -> Any:
         """
             Récupère le plus grand élement numérique d'une DataFrame
             :returns: L'élement le plus grand pour chaque colonne
         """
-        maximums = [np.max(element.data) for element in self.data.values()]
-        return maximums
+        maximums = [Series(data=[element.max()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=maximums)
 
     def mean(self):
         """
@@ -199,8 +246,8 @@ class DataFrame:
           :returns: La moyenne des éléments de chaque colonne
           :raises: ValueError si les éléments ne sont pas numériques
         """
-        moyennes = [np.mean(element.data) for element in self.data.values()]
-        return moyennes
+        moyennes = [Series(data=[element.mean()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=moyennes)
 
     def std(self):
         """
@@ -208,8 +255,8 @@ class DataFrame:
           :returns: L'écart-type de chaque colonne numérique
           :raises: ValueError si une colonne n'est pas numérique
         """
-        stds = [np.std(element.data) for element in self.data.values()]
-        return stds
+        stds = [Series(data=[element.std()], name=name) for name, element in self.data.items()]
+        return DataFrame(series=stds)
 
     def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]):
         """
@@ -219,6 +266,9 @@ class DataFrame:
             :param agg: La stratégie d'agrégation des colonnes
             :return: Le nouvel objet DataFrame ayant été regroupé
         """
+
+        if not isinstance(by, (list, str)):
+            raise Exception
 
         is_in_list = [True if element in self.colonnes else False for element in by]
 
@@ -258,7 +308,7 @@ class DataFrame:
         if not isinstance(other, DataFrame):
             logging.log(logging.CRITICAL, f"Type attendu pour other : {DataFrame}. Got {type(other)}")
         how_list = ["left", "right", "inner", "outer"]
-        if not isinstance(left_on, list) or isinstance(right_on, list):
+        if not isinstance(left_on, (list, str)) and not isinstance(right_on, (list, str)):
             logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
         if how not in how_list:
             logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
@@ -277,19 +327,32 @@ class DataFrame:
         return left_join
 
     def __repr__(self):
+        """
+            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe DataFrame
+        """
         data = [d.data for d in self.data.values()]
         p = "\t".join(self.colonnes)
         for index, element in enumerate(zip(*data)):
             p += "\n"
-            p += str(index) + " " + '   '.join(str(item).ljust(10) for item in element)
-
+            p += str(index) + " " + '   '.join(str(item).ljust(len(self.colonnes)) for item in element)
         return p
 
     def __len__(self):
+        """
+            Redéfinition de la méthode __len__ permettant d'utiliser len() pour une instance de la classe DataFrame
+            :returns : Une chaîne de caractères correspondant à l'instance de la classe DataFrame
+        """
         return self.count()
 
 
 def read_csv(path: str, delimiter: str = ","):
+    """
+        Fonction permettant de créer une nouvelle instance de la classe DataFrame à partir d'un fichier csv
+        :param path: Le chemin relatif, absolu, ou tout simplement le nom du fichier csv
+        :param delimiter: Le séparateur d'éléments au sein du fichier (par défaut une virgule)
+        :returns : Une nouvelle instance de la classe DataFrame à partir des données du fichier
+    """
     if not os.path.exists(path):
         raise FileNotFoundError(f"File {path} not found")
 
@@ -319,6 +382,12 @@ def read_csv(path: str, delimiter: str = ","):
 
 
 def read_json(path: str, orient: str = "records"):
+    """
+          Fonction permettant de créer une nouvelle instance de la classe DataFrame à partir d'un fichier JSON
+          :param path: Le chemin relatif, absolu, ou tout simplement le nom du fichier csv
+          :param orient: L'orientation du fichier JSON (records par défaut)
+          :returns : Une nouvelle instance de la classe DataFrame à partir des données du fichier
+      """
     if orient != "records" and orient != "columns":
         raise TypeError(f"Unexpected value for keyword argument : {orient}")
     if not os.path.exists(path):
