@@ -45,7 +45,7 @@ class Series:
             :return: Nouvel objet de type Serie indexée
         """
         if isinstance(index, int):
-            return Series(data=[self.data[index]], name=self.name if self.name is not None else "Undefined")
+            return self.data[index]
         elif isinstance(index, slice):
             return Series(data=self.data[index], name=self.name if self.name is not None else "Undefined")
         else:
@@ -191,17 +191,22 @@ class DataFrame:
         elif isinstance(index[1], int):
             column_start = index[1]
 
-        if isinstance(index[0], int) and isinstance(index[1], int):
-            return list(self.data.values())[row_start].data[column_start]
-        elif isinstance(index[0], slice) and isinstance(index[1], int):
+        is_integer_and_integer = isinstance(index[0], int) and isinstance(index[1], int)
+        is_slice_and_integer = isinstance(index[0], slice) and isinstance(index[1], int)
+        is_integer_and_slice = isinstance(index[0], int) and isinstance(index[1], slice)
+        is_slice_and_slice = isinstance(index[0], slice) and isinstance(index[1], slice)
+
+        if is_integer_and_integer:
+            return list(self.data.values())[column_start].data[row_start]
+        elif is_slice_and_integer:
             return Series(data=list(self.data.values())[column_start].data[row_start:row_stop],
                           name=list(self.data.keys())[column_start])
-        elif isinstance(index[0], int) and isinstance(index[1], slice):
+        elif is_integer_and_slice:
             data = [d.data[row_start] for d in self.data.values()]
             columns = self.colonnes[column_start:column_stop]
             series = [Series(data=[val], name=name) for val, name in zip(data, columns)]
             return DataFrame(series=series)
-        elif isinstance(index[0], slice) and isinstance(index[1], slice):
+        elif is_slice_and_slice:
             data = [d.data[row_start:row_stop] for d in self.data.values()]
             columns = self.colonnes[column_start:column_stop]
             series = [Series(data=[series_data] if not isinstance(series_data, list) else series_data, name=series_name)
