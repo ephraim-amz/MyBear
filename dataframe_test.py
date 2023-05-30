@@ -16,10 +16,10 @@ class DataFrameTest(unittest.TestCase):
             :param cls: Référence à la classe qui sera instanciée
             :return: None
         """
-        first_serie = Series([1, 3], name='a')
-        second_serie = Series([2, 4], name='b')
-        cls.df_colonnes = DataFrame(colonnes=['a', 'b'], data=[[1, 3], [2, 4]])
-        cls.df_series = DataFrame(series=[first_serie, second_serie])
+        cls.first_serie = Series(range(5), name='a')
+        cls.seconde_serie = Series(range(4), name='b')
+        cls.df_colonnes = DataFrame(colonnes=['a', 'b'], data=[[0, 1, 2, 3, 4], [0, 1, 2, 3, 4]])
+        cls.df_series = DataFrame(series=[cls.first_serie, cls.seconde_serie])
 
     def test_min_colonnes(self):
         """
@@ -186,6 +186,40 @@ class DataFrameTest(unittest.TestCase):
                          [v.data for v in df_orient_records.data.values()])
         self.assertEqual(df_orient_columns.colonnes, df_orient_records.colonnes)
         self.assertEqual(df_orient_columns.__repr__(), df_orient_records.__repr__())
+
+    def test_iloc_series_unique_value(self):
+        self.assertEqual(self.first_serie.data[1], self.first_serie.iloc[1])
+
+    def test_iloc_series_slice(self):
+        self.assertEqual(Series(data=range(1, 4), name=self.first_serie.name).__repr__(),
+                         self.first_serie.iloc[1:-1].__repr__())
+
+    def test_iloc_dataframe_unique_value(self):
+        num_col = 1
+        row_num = 2
+        self.assertEqual(list(self.df_series.data.values())[num_col].data[row_num],
+                         self.df_series.iloc[row_num, num_col])
+
+    def test_iloc_dataframe_slice_int(self):
+        slice_rows = slice(1, 3)
+        num_col = 1
+        self.assertEqual(Series(data=list(self.df_series.data.values())[num_col].data[slice_rows],
+                                name=self.df_series.colonnes[num_col]).__repr__(),
+                         self.df_series.iloc[slice_rows, num_col].__repr__())
+
+    def test_iloc_dataframe_int_slice(self):
+        row = 1
+        slice_cols = slice(0, 2)
+
+        self.assertEqual(DataFrame(data=[[1], [1]], colonnes=["a", "b"]).__repr__(),
+                         self.df_series.iloc[row, slice_cols].__repr__())
+
+    def test_iloc_dataframe_slice_slice(self):
+        slice_rows = slice(0, 2)
+        slice_cols = slice(0, 2)
+        print(self.df_series)
+        self.assertEqual(DataFrame(data=[[0, 1], [0, 1]], colonnes=["a", "b"]).__repr__(),
+                         self.df_series.iloc[slice_rows, slice_cols].__repr__())
 
 
 if __name__ == '__main__':
