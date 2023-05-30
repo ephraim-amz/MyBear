@@ -3,7 +3,9 @@ import json
 import logging
 import csv
 import os
-from typing import List, Any, Union, Dict, Callable
+from typing import List, Any, Union, Dict, Callable, Tuple
+
+logging.basicConfig(level=logging.INFO)
 
 
 class Series:
@@ -34,7 +36,7 @@ class Series:
         """
         self.name = name
 
-    def __getitem__(self, index: Union[List, int]):
+    def __getitem__(self, index: Union[slice, int]):
         """
             Fonction permettant de d'indexer l'instance d'une classe, nécessaire pour la propriété iloc
             (Fonction non optimale car la notation est object.iloc(index) ou object.iloc([start,stop])
@@ -42,16 +44,12 @@ class Series:
             :param index: Index
             :return: Nouvel objet de type Serie indexée
         """
-        is_integer_list_with_two_elements = isinstance(index, list) and len(index) == 2 and all(
-            isinstance(i, int) for i in index)
-        if not isinstance(index, int) and not is_integer_list_with_two_elements:
-            logging.log(logging.CRITICAL,
-                        f"L'argument passé en paramètre est incorrect.\n"
-                        f"Type attendu : {list} ou {int}. Type reçu : {type(index)}")
-            raise ValueError
-        elif isinstance(index, int):
-            sd = Series(data=list(self.data)[index], name=self.name)
-            return sd
+        if isinstance(index, int):
+            return Series(data=[self.data[index]], name=self.name if self.name is not None else "Undefined")
+        elif isinstance(index, slice):
+            return Series(data=self.data[index], name=self.name if self.name is not None else "Undefined")
+        else:
+            logging.log(logging.ERROR, f"Type attendu : {slice} ou {int}. Reçu : {type(index)}")
 
     @property
     def iloc(self) -> Any:
@@ -60,7 +58,7 @@ class Series:
             :raise: IndexError: Si l'index n'est pas un int ou l'index est invalide
             :return: lambda appelant la fonction __getitem__ définit précédemment
         """
-        return lambda index: self[index]
+        return self
 
     def count(self) -> Any:
         """
@@ -173,14 +171,50 @@ class DataFrame:
 
                 self.data = {colonne: serie for colonne, serie in zip(self.colonnes, series_list)}
 
+    def __getitem__(self, index: Tuple[Union[int, slice], Union[int, slice]]):
+        if not isinstance(index, tuple):
+            logging.exception("Mauvais type d'index")
+            raise IndexError(f"Type d'index attendu : {tuple}. Type reçu : {type(index)}")
+        row_start = None
+        column_start = None
+        row_stop = None
+        column_stop = None
+
+        if isinstance(index[0], slice):
+            row_start = index[0].start
+            row_stop = index[0].stop
+        elif isinstance(index[0], int):
+            row_start = index[0]
+        if isinstance(index[1], slice):
+            column_start = index[1].start
+            column_stop = index[1].stop
+        elif isinstance(index[1], int):
+            column_start = index[1]
+
+        if isinstance(index[0], int) and isinstance(index[1], int):
+            return list(self.data.values())[row_start].data[column_start]
+        elif isinstance(index[0], slice) and isinstance(index[1], int):
+            return Series(data=list(self.data.values())[column_start].data[row_start:row_stop],
+                          name=list(self.data.keys())[column_start])
+        elif isinstance(index[0], int) and isinstance(index[1], slice):
+            data = [d.data[row_start] for d in self.data.values()]
+            columns = self.colonnes[column_start:column_stop]
+            series = [Series(data=[val], name=name) for val, name in zip(data, columns)]
+            return DataFrame(series=series)
+        elif isinstance(index[0], slice) and isinstance(index[1], slice):
+            data = [d.data[row_start:row_stop] for d in self.data.values()]
+            columns = self.colonnes[column_start:column_stop]
+            series = [Series(data=[series_data] if not isinstance(series_data, list) else series_data, name=series_name)
+                      for series_data, series_name in zip(data, columns)]
+            return DataFrame(series=series)
+
     @property
     def iloc(self):
         """
             Propriété de la classe DataFrame permettant une indexation basée sur la position des éléments
             :return:
         """
-        # logging.exception("NotImplementedError")
-        raise NotImplementedError
+        return self
 
     def count(self) -> Any:
         """
@@ -302,7 +336,6 @@ class DataFrame:
         for index, element in enumerate(zip(*data)):
             p += "\n"
             p += str(index) + " " + '   '.join(str(item).ljust(len(self.colonnes)) for item in element)
-
         return p
 
     def __len__(self):
