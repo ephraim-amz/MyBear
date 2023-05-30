@@ -318,18 +318,53 @@ class DataFrame:
         if how not in how_list:
             logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
 
-        left_join = []
-        if how == "left":
-            for d1 in self.data:
-                for d2 in other.data:
-                    if d1["left_on"] == d2["right_on"]:
-                        join_dict = {**d1, **d2}  # Fusionne les deux dictionnaires
-                        left_join.append(join_dict)
 
-        for data in left_join:
-            print(data)
+        result = []
 
-        return left_join
+        # Vérification des types des clés
+        if isinstance(left_on, str):
+            left_on = [left_on]
+        if isinstance(right_on, str):
+            right_on = [right_on]
+
+        if (how == "left"):
+
+            # Parcours des entrées de l'objet self
+            for entry_self in self:
+                entry_result = entry_self.copy()
+                matching_entries = []
+
+                # Parcours des entrées de l'objet other
+                for entry_other in other:
+                    matching = True
+                    # Vérification des correspondances des clés
+                    for left_key, right_key in zip(left_on, right_on):
+                        if entry_self[left_key] != entry_other[right_key]:
+                            matching = False
+                            break
+
+                    if matching:
+                        matching_entries.append(entry_other)
+
+                if matching_entries:
+                    entry_result['matching_entries'] = matching_entries
+                else:
+                    entry_result['matching_entries'] = []
+
+                result.append(entry_result)
+
+        elif how == "right":
+            ...
+        elif how == "inner":
+            ...
+        elif how == "outer":
+            ...
+
+        return result
+
+
+
+
 
     def __repr__(self):
         """
