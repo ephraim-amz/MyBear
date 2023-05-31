@@ -4,6 +4,8 @@ import logging
 import csv
 import os
 from typing import List, Any, Union, Dict, Callable, Tuple
+from datetime import datetime
+import re
 
 logging.basicConfig(level=logging.INFO)
 
@@ -319,16 +321,24 @@ class DataFrame:
                     for group_indexes in doublon_indexes:
                         for index in group_indexes:
                             doublon_values.append(self.iloc[index, self.colonnes.index(col)])
-                    is_float_or_int = all([isinstance(el, (float, int)) for el in doublon_values])
-                    if is_float_or_int:
-                        datas.append(agg[by[0]](doublon_values))
-                    else:
-                        datas.append(''.join(doublon_values))
 
-                    datas += ([self.iloc[i, self.colonnes.index(col)] for i in
-                                              range(self.data.get(col).count()) if i not in doublon_indexes[0]])
+                    for agg_value in agg.values():
+                        if agg_value == sum:
+                            is_float_or_int = all([isinstance(el, (float, int)) for el in doublon_values])
+                            if is_float_or_int:
+                                datas.append(agg[by[0]](doublon_values))
+                            else:
+                                datas.append(''.join(doublon_values))
 
-                    series_list.append(Series(data=datas, name=col))
+                            datas += ([self.iloc[i, self.colonnes.index(col)] for i in
+                                       range(self.data.get(col).count()) if i not in doublon_indexes[0]])
+
+                            series_list.append(Series(data=datas, name=col))
+
+                        if agg_value == max:
+                            max()
+                        if agg_value == min:
+                            ...
 
             # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
             # Créer un nouveau dataframe à partir de chaque nouvelle colonne
@@ -443,6 +453,8 @@ def read_csv(path: str, delimiter: str = ","):
                             line[index] = float(element)
                         except ValueError:
                             logging.log(logging.CRITICAL, "Value can not be converted to float")
+                    elif re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", element):
+                        line[index] = datetime.strptime(element, "%d-%m-%Y").date()
 
             dataframe = DataFrame(colonnes=columns, data=lines)
     except Exception as e:
