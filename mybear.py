@@ -284,7 +284,7 @@ class DataFrame:
             raise ValueError
         else:
             series_list = []
-            doublons_indexes = []
+            doublon_indexes = []
             for colonne in by:
                 if colonne in agg:
 
@@ -296,52 +296,45 @@ class DataFrame:
                         else:
                             doublons[valeur] = [index]
 
-                    # ...
+                    # Crée la série de colonne du by et qui est dans agg et l'ajoute dans la liste des series
                     datas = []
                     for d in list(doublons.values()):
                         values = []
                         if len(d) == 1:
                             datas.append(self.iloc[d[0], self.colonnes.index(colonne)])
                         else:
-                            doublons_indexes.append(d)
+                            doublon_indexes.append(d)
                             for d_index in d:
                                 # récupère une valeur unique
                                 values.append(self.iloc[d_index, self.colonnes.index(colonne)])
-                            # datas.append(agg[colonne](values))
                             datas.append(values[0])
 
                     series_list.append(Series(data=datas, name=colonne))
 
-                else:
-                    ...
-
+            # Parcours les colonnes à part la colonne du by et crée une nouvelle serie avec sum appliqué
             for col in self.colonnes:
                 if col not in by:
-                    other_datas = []
-                    val = []
-                    for group_indexes in doublons_indexes:
+                    datas = []
+                    doublon_values = []
+                    for group_indexes in doublon_indexes:
                         for index in group_indexes:
-                            val.append(self.iloc[index, self.colonnes.index(col)])
-                    is_float_or_int = all([isinstance(el, (float, int)) for el in val])
+                            doublon_values.append(self.iloc[index, self.colonnes.index(col)])
+                    is_float_or_int = all([isinstance(el, (float, int)) for el in doublon_values])
                     if is_float_or_int:
-                        other_datas.append(agg[by[0]](val))
+                        datas.append(agg[by[0]](doublon_values))
                     else:
-                        other_datas.append(''.join(val))
+                        datas.append(''.join(doublon_values))
 
-                    other_datas += ([self.iloc[i, self.colonnes.index(col)] for i in
-                                              range(self.data.get(col).count()) if i not in doublons_indexes[0]])
+                    datas += ([self.iloc[i, self.colonnes.index(col)] for i in
+                                              range(self.data.get(col).count()) if i not in doublon_indexes[0]])
 
-                    series_list.append(Series(data=other_datas, name=col))
+                    series_list.append(Series(data=datas, name=col))
 
             # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
-            # TODO : Effectuer la fonction d'aggrégation pour chaque colonne
-
             # Créer un nouveau dataframe à partir de chaque nouvelle colonne
             new_dataframe = DataFrame(series=series_list)
-
             # Retourner cet instance nouvellement créée
             return new_dataframe
-        # raise NotImplementedError
 
     def join(self, other, left_on: List[str] | str, right_on: List[str] | str, how: str = "left"):
         """
