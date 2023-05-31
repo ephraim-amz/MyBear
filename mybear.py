@@ -285,8 +285,8 @@ class DataFrame:
         else:
             series_list = []
             doublons_indexes = []
-            for colonne in self.colonnes:
-                if colonne in by and colonne in agg:
+            for colonne in by:
+                if colonne in agg:
 
                     # Regarder les valeurs uniques de la colonne sélectionné lors du by
                     doublons = {}
@@ -297,9 +297,9 @@ class DataFrame:
                             doublons[valeur] = [index]
 
                     # ...
-                    values = []
                     datas = []
                     for d in list(doublons.values()):
+                        values = []
                         if len(d) == 1:
                             datas.append(self.iloc[d[0], self.colonnes.index(colonne)])
                         else:
@@ -307,12 +307,31 @@ class DataFrame:
                             for d_index in d:
                                 # récupère une valeur unique
                                 values.append(self.iloc[d_index, self.colonnes.index(colonne)])
-                            datas.append(agg[colonne](values))
+                            # datas.append(agg[colonne](values))
+                            datas.append(values[0])
 
                     series_list.append(Series(data=datas, name=colonne))
 
                 else:
-                    series_list.append(self.data.get(colonne))
+                    ...
+
+            for col in self.colonnes:
+                if col not in by:
+                    other_datas = []
+                    val = []
+                    for group_indexes in doublons_indexes:
+                        for index in group_indexes:
+                            val.append(self.iloc[index, self.colonnes.index(col)])
+                    is_float_or_int = all([isinstance(el, (float, int)) for el in val])
+                    if is_float_or_int:
+                        other_datas.append(agg[by[0]](val))
+                    else:
+                        other_datas.append(''.join(val))
+
+                    other_datas += ([self.iloc[i, self.colonnes.index(col)] for i in
+                                              range(self.data.get(col).count()) if i not in doublons_indexes[0]])
+
+                    series_list.append(Series(data=other_datas, name=col))
 
             # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
             # TODO : Effectuer la fonction d'aggrégation pour chaque colonne
