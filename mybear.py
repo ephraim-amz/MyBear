@@ -27,6 +27,9 @@ class Series:
             self.data = list(data)
             self.index = range(len(data))
             self.name = name
+        else:
+            logging.exception(f"Type attendu : {range} ou {list}. Type reçu : {type(data)}")
+            raise AttributeError
 
     def __set_name(self, name: str) -> None:
         """
@@ -280,25 +283,45 @@ class DataFrame:
         if False in is_in_list:
             raise ValueError
         else:
-            # Pour chaque colonne, regarder les valeurs uniques de la colonne sélectionné lors du by
+            series_list = []
+            doublons_indexes = []
+            for colonne in self.colonnes:
+                if colonne in by and colonne in agg:
 
-            # p4.py = [self.data[self.colonnes.index(by[i])] for i in range(len(by))] Lorsque by aura plusieurs colonnes
-            # unique_cols = list(set(self.data[self.colonnes.index(by[0])]))
-            new_serie = Series(data=[], name=by[0])
-            for val in self.data.get(by[0]).data:
-                if val not in new_serie.data:
-                    new_serie.data.append(val)
-            print()
+                    # Regarder les valeurs uniques de la colonne sélectionné lors du by
+                    doublons = {}
+                    for index, valeur in enumerate(self.data.get(colonne).data):
+                        if valeur in doublons:
+                            doublons[valeur].append(index)
+                        else:
+                            doublons[valeur] = [index]
+
+                    # ...
+                    values = []
+                    datas = []
+                    for d in list(doublons.values()):
+                        if len(d) == 1:
+                            datas.append(self.iloc[d[0], self.colonnes.index(colonne)])
+                        else:
+                            doublons_indexes.append(d)
+                            for d_index in d:
+                                # récupère une valeur unique
+                                values.append(self.iloc[d_index, self.colonnes.index(colonne)])
+                            datas.append(agg[colonne](values))
+
+                    series_list.append(Series(data=datas, name=colonne))
+
+                else:
+                    series_list.append(self.data.get(colonne))
+
             # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
             # TODO : Effectuer la fonction d'aggrégation pour chaque colonne
 
-            # TODO : Créer un nouveau dataframe à partir de chaque nouvelle colonne
-            # TODO : Retourner cet instance nouvellement créée
-            p = []
-            for i in range(len(by)):
-                p.append(agg.get(by[i])(self.data[self.colonnes.index(by[i])]))
-            # self.data[self.colonnes.index(by[0])]
-            return p
+            # Créer un nouveau dataframe à partir de chaque nouvelle colonne
+            new_dataframe = DataFrame(series=series_list)
+
+            # Retourner cet instance nouvellement créée
+            return new_dataframe
         # raise NotImplementedError
 
     def join(self, other, left_on: List[str] | str, right_on: List[str] | str, how: str = "left"):
