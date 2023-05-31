@@ -3,6 +3,7 @@ import json
 import logging
 import csv
 import os
+import copy
 from typing import List, Any, Union, Dict, Callable, Tuple
 
 logging.basicConfig(level=logging.INFO)
@@ -173,8 +174,8 @@ class DataFrame:
 
     def __getitem__(self, index: Tuple[Union[int, slice], Union[int, slice]]):
         if not isinstance(index, tuple):
-            logging.exception("Mauvais type d'index")
-            raise IndexError(f"Type d'index attendu : {tuple}. Type reçu : {type(index)}")
+            logging.exception(f"Type d'index attendu : {tuple}. Type reçu : {type(index)}")
+            raise IndexError
         row_start = None
         column_start = None
         row_stop = None
@@ -319,39 +320,63 @@ class DataFrame:
             logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
 
         result = []
+        df_join = None
 
-        # Vérification des types des clés
         if isinstance(left_on, str):
             left_on = [left_on]
         if isinstance(right_on, str):
             right_on = [right_on]
 
-        if (how == "left"):
+        if how == "left":
+            left_dataframe = copy.deepcopy(self)
+            left_dataframe.colonnes = [''.join([colonne, "_x"]) if colonne in right_on else colonne for colonne in
+                                       left_dataframe.colonnes]
+            for element in left_dataframe.data.get(left_on[0]):
+                if element in other.data.get(right_on[0]).data:
+                    left_dataframe.colonnes.append("price_y")
+                    left_dataframe.colonnes.append(other.data.get("price")[0])
+                    left_dataframe.colonnes.append(other.data.get("date")[0])
+                    #left_dataframe.colonnes = ["price", other.data.get("price")[0]]
+                    left_dataframe.data.update()
 
-            # Parcours des entrées de l'objet self
-            for entry_self in self:
-                entry_result = entry_self.copy()
+
+
+
+            """
+            for entry_self in self.data.values():
+                entry_result = entry_self
                 matching_entries = []
 
-                # Parcours des entrées de l'objet other
-                for entry_other in other:
+                for entry_other in other.data.values():
                     matching = True
-                    # Vérification des correspondances des clés
+
+                    # Gestion de taille à faire
+
                     for left_key, right_key in zip(left_on, right_on):
-                        if entry_self[left_key] != entry_other[right_key]:
+                        left_serie_values = self.iloc[:, self.colonnes.index(left_key)].data
+                        right_serie_values = other.iloc[:, other.colonnes.index(right_key)].data
+
+                        if left_serie_values != right_serie_values:
                             matching = False
                             break
 
                     if matching:
+                        # self.data.update({right_key: other.iloc[:, other.colonnes.index(right_key)]})
                         matching_entries.append(entry_other)
 
-                if matching_entries:
+                if len(matching_entries) > 0:
                     entry_result['matching_entries'] = matching_entries
                 else:
                     entry_result['matching_entries'] = []
 
                 result.append(entry_result)
 
+            self_data = [list(entry.values()) for entry in self.data]
+            other_data = [list(entry.values()) for entry in other.data]
+            df_join = DataFrame(data=self_data + other_data)
+            
+            return df_join
+            """
         elif how == "right":
             ...
         elif how == "inner":
@@ -359,7 +384,7 @@ class DataFrame:
         elif how == "outer":
             ...
 
-        return result
+        return df_join
 
     def __str__(self):
         """
