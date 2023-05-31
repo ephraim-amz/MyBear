@@ -122,9 +122,9 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
-    def __repr__(self):
+    def __str__(self):
         """
-            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe Series
+            Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe Series
             :returns : Une chaîne de caractères correspondant à l'instance de la classe Series
         """
         str_builder = ["{}\t{}".format(i, val) for i, val in enumerate(self.data)]
@@ -282,7 +282,7 @@ class DataFrame:
         else:
             # Pour chaque colonne, regarder les valeurs uniques de la colonne sélectionné lors du by
 
-            # p = [self.data[self.colonnes.index(by[i])] for i in range(len(by))] Lorsque by aura plusieurs colonnes
+            # p4.py = [self.data[self.colonnes.index(by[i])] for i in range(len(by))] Lorsque by aura plusieurs colonnes
             # unique_cols = list(set(self.data[self.colonnes.index(by[0])]))
             new_serie = Series(data=[], name=by[0])
             for val in self.data.get(by[0]).data:
@@ -317,7 +317,6 @@ class DataFrame:
             logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
         if how not in how_list:
             logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
-
 
         result = []
 
@@ -362,13 +361,9 @@ class DataFrame:
 
         return result
 
-
-
-
-
-    def __repr__(self):
+    def __str__(self):
         """
-            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
+            Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
             :returns : Une chaîne de caractères correspondant à l'instance de la classe DataFrame
         """
         data = [d.data for d in self.data.values()]
