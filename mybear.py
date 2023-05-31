@@ -171,7 +171,8 @@ class DataFrame:
         elif kwargs.get("series"):
             series_list = kwargs.get("series")
             if series_list:
-                self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for (index, serie) in
+                self.colonnes = [serie.name if serie.name is not None else f"Unnamed {index}" for
+                                 (index, serie) in
                                  enumerate(series_list)]
 
                 self.data = {colonne: serie for colonne, serie in zip(self.colonnes, series_list)}
@@ -417,6 +418,18 @@ class DataFrame:
             p += "\n"
             p += str(index) + " " + '   '.join(str(item).ljust(len(self.colonnes)) for item in element)
         return p
+
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index >= len(self.data.keys()):
+            raise StopIteration
+        else:
+            serie = self.iloc[:, self.index]
+            self.index += 1
+            return serie
 
     def __len__(self):
         """

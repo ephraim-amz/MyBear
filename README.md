@@ -100,9 +100,9 @@ class Series:
           :raises: ValueError si les éléments ne sont pas numériques
         """
 
-    def __repr__(self):
+    def __str__(self):
         """
-            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe Series
+            Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe Series
             :returns : Une chaîne de caractères correspondant à l'instance de la classe Series
         """
 
@@ -188,9 +188,9 @@ class DataFrame:
               :return: Le nouvel objet DataFrame ayant été combiné avec une l'autre dataframe
         """
 
-    def __repr__(self):
+    def __str__(self):
         """
-            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
+            Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
             :returns : Une chaîne de caractères correspondant à l'instance de la classe DataFrame
         """
 
