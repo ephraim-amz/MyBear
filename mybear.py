@@ -27,6 +27,9 @@ class Series:
             self.data = list(data)
             self.index = range(len(data))
             self.name = name
+        else:
+            logging.exception(f"Type attendu : {range} ou {list}. Type reçu : {type(data)}")
+            raise AttributeError
 
     def __set_name(self, name: str) -> None:
         """
@@ -122,9 +125,9 @@ class Series:
             except Exception as e:
                 logging.log(logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}")
 
-    def __repr__(self):
+    def __str__(self):
         """
-            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe Series
+            Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe Series
             :returns : Une chaîne de caractères correspondant à l'instance de la classe Series
         """
         str_builder = ["{}\t{}".format(i, val) for i, val in enumerate(self.data)]
@@ -280,26 +283,58 @@ class DataFrame:
         if False in is_in_list:
             raise ValueError
         else:
-            # Pour chaque colonne, regarder les valeurs uniques de la colonne sélectionné lors du by
+            series_list = []
+            doublon_indexes = []
+            for colonne in by:
+                if colonne in agg:
 
-            # p = [self.data[self.colonnes.index(by[i])] for i in range(len(by))] Lorsque by aura plusieurs colonnes
-            # unique_cols = list(set(self.data[self.colonnes.index(by[0])]))
-            new_serie = Series(data=[], name=by[0])
-            for val in self.data.get(by[0]).data:
-                if val not in new_serie.data:
-                    new_serie.data.append(val)
-            print()
+                    # Regarder les valeurs uniques de la colonne sélectionné lors du by
+                    doublons = {}
+                    for index, valeur in enumerate(self.data.get(colonne).data):
+                        if valeur in doublons:
+                            doublons[valeur].append(index)
+                        else:
+                            doublons[valeur] = [index]
+
+                    # Crée la série de colonne du by et qui est dans agg et l'ajoute dans la liste des series
+                    datas = []
+                    for d in list(doublons.values()):
+                        values = []
+                        if len(d) == 1:
+                            datas.append(self.iloc[d[0], self.colonnes.index(colonne)])
+                        else:
+                            doublon_indexes.append(d)
+                            for d_index in d:
+                                # récupère une valeur unique
+                                values.append(self.iloc[d_index, self.colonnes.index(colonne)])
+                            datas.append(values[0])
+
+                    series_list.append(Series(data=datas, name=colonne))
+
+            # Parcours les colonnes à part la colonne du by et crée une nouvelle serie avec sum appliqué
+            for col in self.colonnes:
+                if col not in by:
+                    datas = []
+                    doublon_values = []
+                    for group_indexes in doublon_indexes:
+                        for index in group_indexes:
+                            doublon_values.append(self.iloc[index, self.colonnes.index(col)])
+                    is_float_or_int = all([isinstance(el, (float, int)) for el in doublon_values])
+                    if is_float_or_int:
+                        datas.append(agg[by[0]](doublon_values))
+                    else:
+                        datas.append(''.join(doublon_values))
+
+                    datas += ([self.iloc[i, self.colonnes.index(col)] for i in
+                                              range(self.data.get(col).count()) if i not in doublon_indexes[0]])
+
+                    series_list.append(Series(data=datas, name=col))
+
             # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
-            # TODO : Effectuer la fonction d'aggrégation pour chaque colonne
-
-            # TODO : Créer un nouveau dataframe à partir de chaque nouvelle colonne
-            # TODO : Retourner cet instance nouvellement créée
-            p = []
-            for i in range(len(by)):
-                p.append(agg.get(by[i])(self.data[self.colonnes.index(by[i])]))
-            # self.data[self.colonnes.index(by[0])]
-            return p
-        # raise NotImplementedError
+            # Créer un nouveau dataframe à partir de chaque nouvelle colonne
+            new_dataframe = DataFrame(series=series_list)
+            # Retourner cet instance nouvellement créée
+            return new_dataframe
 
     def join(self, other, left_on: List[str] | str, right_on: List[str] | str, how: str = "left"):
         """
@@ -318,22 +353,52 @@ class DataFrame:
         if how not in how_list:
             logging.log(logging.CRITICAL, f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}")
 
-        left_join = []
-        if how == "left":
-            for d1 in self.data:
-                for d2 in other.data:
-                    if d1["left_on"] == d2["right_on"]:
-                        join_dict = {**d1, **d2}  # Fusionne les deux dictionnaires
-                        left_join.append(join_dict)
+        result = []
 
-        for data in left_join:
-            print(data)
+        # Vérification des types des clés
+        if isinstance(left_on, str):
+            left_on = [left_on]
+        if isinstance(right_on, str):
+            right_on = [right_on]
 
-        return left_join
+        if (how == "left"):
 
-    def __repr__(self):
+            # Parcours des entrées de l'objet self
+            for entry_self in self:
+                entry_result = entry_self.copy()
+                matching_entries = []
+
+                # Parcours des entrées de l'objet other
+                for entry_other in other:
+                    matching = True
+                    # Vérification des correspondances des clés
+                    for left_key, right_key in zip(left_on, right_on):
+                        if entry_self[left_key] != entry_other[right_key]:
+                            matching = False
+                            break
+
+                    if matching:
+                        matching_entries.append(entry_other)
+
+                if matching_entries:
+                    entry_result['matching_entries'] = matching_entries
+                else:
+                    entry_result['matching_entries'] = []
+
+                result.append(entry_result)
+
+        elif how == "right":
+            ...
+        elif how == "inner":
+            ...
+        elif how == "outer":
+            ...
+
+        return result
+
+    def __str__(self):
         """
-            Redéfinition de la méthode __repr__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
+            Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
             :returns : Une chaîne de caractères correspondant à l'instance de la classe DataFrame
         """
         data = [d.data for d in self.data.values()]
