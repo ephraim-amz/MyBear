@@ -334,12 +334,13 @@ class DataFrame:
                             datas += ([self.iloc[i, self.colonnes.index(col)] for i in
                                        range(self.data.get(col).count()) if i not in doublon_indexes[0]])
 
-                            series_list.append(Series(data=datas, name=col))
+                        if agg_value == max or agg_value == min:
+                            datas.append(agg_value(doublon_values))
 
-                        if agg_value == max:
-                            max()
-                        if agg_value == min:
-                            ...
+                            datas += ([self.iloc[i, self.colonnes.index(col)] for i in
+                                       range(self.data.get(col).count()) if i not in doublon_indexes[0]])
+
+                    series_list.append(Series(data=datas, name=col))
 
             # TODO : Retourner une exception si la fonction d'aggrégation n'est pas possible pour la fonction appelé
             # Créer un nouveau dataframe à partir de chaque nouvelle colonne
