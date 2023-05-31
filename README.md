@@ -48,7 +48,7 @@ class Series:
 
 
     def __set_name(self, name) -> None:
-        
+
 
     def __getitem__(self, index: Union[List, int]):
         """
@@ -58,7 +58,7 @@ class Series:
             :param index: Index
             :return: Nouvel objet de type Serie indexée
         """
-       
+
     @property
     def iloc(self) -> Any:
         """

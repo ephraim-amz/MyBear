@@ -1,11 +1,17 @@
-import numpy as np
+import csv
+from datetime import datetime
 import json
 import logging
-import csv
 import os
-from typing import List, Any, Union, Dict, Callable, Tuple
-from datetime import datetime
 import re
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Tuple
+from typing import Union
+
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,7 +24,7 @@ class Series:
     la Serie (taille, nombre de valeurs manquantes et type de données)
     """
 
-    def __init__(self, data: Union[range, List[Union[Any]]],
+    def __init__(self, data: Union[range, List[Any]],
                  name: str = None) -> None:
         """
         Fonction __init__ permettant de créer une nouvelle instance de la classe Series
