@@ -271,9 +271,42 @@ class DataFrame:
                 self.colonnes = kwargs.get("colonnes")
 
         if kwargs.get("colonnes") and kwargs.get("data"):
+            if not isinstance(kwargs.get("data"), list):
+                logging.exception(f"Type attendu pour data : {list}. Type reçu : {type(kwargs.get('data'))}")
+                raise AttributeError
+
+            # vérifier les tailles
+            if len(self.colonnes) != len(kwargs.get("data")):
+                logging.exception(f"Le nombre de colonnnes est différent du nombre d'éléments dans data")
+                raise AttributeError
+
+            list_types = []
+            data = []
+            for colonne, liste in zip(kwargs.get("colonnes"), kwargs.get("data")):
+                types = []
+                for element in liste:
+                    types.append(type(element))
+
+                occurences = dict(list(set(map(lambda x: (x, types.count(x)), types))))
+
+                type_max = None
+                for cle, valeur in occurences.items():
+                    if valeur == max(list(occurences.values())):
+                        type_max = cle
+                values = []
+                for index, el in enumerate(liste):
+                    try:
+                        values.append(type_max.__new__(type_max, el))
+                    except ValueError:
+                        values.append(None)
+
+                data.append(values)
+
+                list_types.append(types)
+
             self.data = {
                 colonne: Series(data=serie, name=colonne)
-                for colonne, serie in zip(self.colonnes, kwargs.get("data"))
+                for colonne, serie in zip(self.colonnes, data)
             }
 
         elif kwargs.get("series"):
@@ -556,11 +589,11 @@ class DataFrame:
             return new_dataframe
 
     def join(
-        self,
-        other,
-        left_on: List[str] | str,
-        right_on: List[str] | str,
-        how: str = "left",
+            self,
+            other,
+            left_on: List[str] | str,
+            right_on: List[str] | str,
+            how: str = "left",
     ):
         """
         Permet de combiner des données provenant de deux DataFrames
@@ -585,7 +618,7 @@ class DataFrame:
             )
         how_list = ["left", "right", "inner", "outer"]
         if not isinstance(left_on, (list, str)) and not isinstance(
-            right_on, (list, str)
+                right_on, (list, str)
         ):
             logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
         if how not in how_list:
@@ -650,9 +683,9 @@ class DataFrame:
         for index, element in enumerate(zip(*data)):
             p += "\n"
             p += (
-                str(index)
-                + " "
-                + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
+                    str(index)
+                    + " "
+                    + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
             )
         return p
 
@@ -742,7 +775,7 @@ def read_csv(path: str, delimiter: str = ","):
                     if element[0] == "-" and element[1:].isdigit():
                         line[index] = -int(element[1:])
                     elif (
-                        "." in element and element[element.index(".") + 1 :].isnumeric()
+                            "." in element and element[element.index(".") + 1:].isnumeric()
                     ):
                         try:
                             line[index] = float(element)
