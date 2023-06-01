@@ -751,7 +751,7 @@ def read_csv(path: str, delimiter: str = ","):
     Exception
         Une erreur est survenue durant la lecture du fichier
     """
-    if not os.path.exists(path):
+    if not os.path.exists(os.path.join(path)):
         logging.exception(f"Fichier {path} introuvable")
         raise FileNotFoundError
 
