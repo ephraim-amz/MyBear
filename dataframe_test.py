@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from mybear import DataFrame
 from mybear import read_json
 from mybear import Series
@@ -25,15 +27,28 @@ def df_series() -> DataFrame:
     first_serie = Series(range(5), name="a")
     second_serie = Series(range(4), name="b")
 
-    return DataFrame(
-        series=[first_serie, second_serie]
-    )
+    return DataFrame(series=[first_serie, second_serie])
 
 
 @pytest.fixture
 def df_colonnes() -> DataFrame:
+    return DataFrame(colonnes=["a", "b"], data=[[0, 1, 2, 3, 4], [0, 1, 2, 3]])
+
+
+@pytest.fixture
+def df_articles() -> DataFrame:
     return DataFrame(
-        colonnes=["a", "b"], data=[[0, 1, 2, 3, 4], [0, 1, 2, 3]]
+        colonnes=["name", "price", "date"],
+        data=[
+            ["Orange", "Pamplemousse", "Rhubarbe", "Orange"],
+            [15.0, 1.34, 2.34, 15.0],
+            [
+                datetime.strptime("3-04-2010", "%d-%m-%Y").date(),
+                datetime.strptime("2-04-2010", "%d-%m-%Y").date(),
+                datetime.strptime("3-11-2009", "%d-%m-%Y").date(),
+                datetime.strptime("1-04-2010", "%d-%m-%Y").date(),
+            ],
+        ],
     )
 
 
@@ -113,8 +128,13 @@ def test_min_inferior_to_max(df_colonnes, df_series):
     Test case permettant de vérifier que la méthode min() retourne une
     valeur inférieure à la méthode max()
     """
-    assert df_colonnes.min() < df_colonnes.max()
-    assert df_series.min() < df_series.max()
+
+    assert [serie.data[0] for serie in list(df_colonnes.min().data.values())] < [
+        serie.data[0] for serie in list(df_colonnes.max().data.values())
+    ]
+    assert [serie.data[0] for serie in list(df_series.min().data.values())] < [
+        serie.data[0] for serie in list(df_series.max().data.values())
+    ]
 
 
 def test_count_series(df_colonnes, df_series):
@@ -212,12 +232,22 @@ def test_mean_series(df_series):
     assert DataFrame(series=mean_series) == df_series.mean()
 
 
-@pytest.mark.skip()
-def test_groupby(df_colonnes):
+def test_groupby(df_articles):
     """
     Vérification de la méthode groupby
     """
-    df_colonnes.groupby(by="price", agg={"price": min})
+    assert df_articles.groupby(by=["price"], agg={"price": min}) == DataFrame(
+        colonnes=["price", "name", "date"],
+        data=[
+            [15.0, 1.34, 2.34],
+            ["Orange", "Pamplemousse", "Rhubarbe"],
+            [
+                datetime.strptime("1-04-2010", "%d-%m-%Y").date(),
+                datetime.strptime("2-04-2010", "%d-%m-%Y").date(),
+                datetime.strptime("3-11-2009", "%d-%m-%Y").date(),
+            ],
+        ],
+    )
 
 
 @pytest.mark.skip()
@@ -233,10 +263,10 @@ def test_same_data_json_orient():
     Vérification de la méthode groupby
     """
     df_orient_records = read_json(path="oriented_records.json")
-    df_orient_columns = read_json(
-        path="oriented_columns.json",
-        orient="columns")
-    assert [v.data for v in df_orient_columns.data.values()] == [v.data for v in df_orient_records.data.values()]
+    df_orient_columns = read_json(path="oriented_columns.json", orient="columns")
+    assert [v.data for v in df_orient_columns.data.values()] == [
+        v.data for v in df_orient_records.data.values()
+    ]
     assert df_orient_columns.colonnes == df_orient_records.colonnes
 
     assert df_orient_columns == df_orient_records
@@ -265,7 +295,10 @@ def test_iloc_dataframe_unique_value(df_series):
     num_col = 1
     row_num = 2
 
-    assert list(df_series.data.values())[num_col].data[row_num] == df_series.iloc[row_num, num_col]
+    assert (
+        list(df_series.data.values())[num_col].data[row_num]
+        == df_series.iloc[row_num, num_col]
+    )
 
 
 def test_iloc_dataframe_slice_int(df_series):
@@ -276,10 +309,13 @@ def test_iloc_dataframe_slice_int(df_series):
     slice_rows = slice(1, 3)
     num_col = 1
 
-    assert Series(
-        data=list(df_series.data.values())[num_col].data[slice_rows],
-        name=df_series.colonnes[num_col],
-    ) == df_series.iloc[slice_rows, num_col]
+    assert (
+        Series(
+            data=list(df_series.data.values())[num_col].data[slice_rows],
+            name=df_series.colonnes[num_col],
+        )
+        == df_series.iloc[slice_rows, num_col]
+    )
 
 
 def test_iloc_dataframe_int_slice(df_series):
@@ -290,7 +326,10 @@ def test_iloc_dataframe_int_slice(df_series):
     row = 1
     slice_cols = slice(0, 2)
 
-    assert DataFrame(data=[[1], [1]], colonnes=["a", "b"]) == df_series.iloc[row, slice_cols]
+    assert (
+        DataFrame(data=[[1], [1]], colonnes=["a", "b"])
+        == df_series.iloc[row, slice_cols]
+    )
 
 
 def test_iloc_dataframe_slice_slice(df_series):
@@ -300,5 +339,7 @@ def test_iloc_dataframe_slice_slice(df_series):
     """
     slice_rows = slice(0, 2)
     slice_cols = slice(0, 2)
-    assert DataFrame(data=[[0, 1], [0, 1]], colonnes=["a", "b"]) == df_series.iloc[
-        slice_rows, slice_cols]
+    assert (
+        DataFrame(data=[[0, 1], [0, 1]], colonnes=["a", "b"])
+        == df_series.iloc[slice_rows, slice_cols]
+    )
