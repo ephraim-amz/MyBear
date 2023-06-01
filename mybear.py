@@ -221,6 +221,17 @@ class Series:
         """
         return self.count()
 
+    def __eq__(self, other) -> bool:
+        """
+        Redéfinition de la méthode __eq__ permettant de comparer deux instances de la classe Serie
+
+        Returns
+        -------
+        bool
+            True or False
+        """
+        return self.data == other.data and self.name == other.name
+
 
 class DataFrame:
     """
@@ -546,11 +557,11 @@ class DataFrame:
             return new_dataframe
 
     def join(
-        self,
-        other,
-        left_on: List[str] | str,
-        right_on: List[str] | str,
-        how: str = "left",
+            self,
+            other,
+            left_on: List[str] | str,
+            right_on: List[str] | str,
+            how: str = "left",
     ):
         """
         Permet de combiner des données provenant de deux DataFrames
@@ -575,7 +586,7 @@ class DataFrame:
             )
         how_list = ["left", "right", "inner", "outer"]
         if not isinstance(left_on, (list, str)) and not isinstance(
-            right_on, (list, str)
+                right_on, (list, str)
         ):
             logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
         if how not in how_list:
@@ -640,9 +651,9 @@ class DataFrame:
         for index, element in enumerate(zip(*data)):
             p += "\n"
             p += (
-                str(index)
-                + " "
-                + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
+                    str(index)
+                    + " "
+                    + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
             )
         return p
 
@@ -668,6 +679,25 @@ class DataFrame:
             Le nombre d'élements
         """
         return self.count()
+
+    def __eq__(self, other):
+        """
+        Redéfinition de la méthode __eq__ permettant de comparer deux instances de la classe DataFrame
+
+        Returns
+        -------
+        bool
+            True or False
+        """
+        if len(self) != len(other):
+            return False
+        elif self.colonnes != other.colonnes:
+            return False
+        for self_serie, other_serie in zip(self, other):
+            if self_serie != other_serie:
+                return False
+
+        return True
 
 
 def read_csv(path: str, delimiter: str = ","):
@@ -713,7 +743,7 @@ def read_csv(path: str, delimiter: str = ","):
                     if element[0] == "-" and element[1:].isdigit():
                         line[index] = -int(element[1:])
                     elif (
-                        "." in element and element[element.index(".") + 1:].isnumeric()
+                            "." in element and element[element.index(".") + 1:].isnumeric()
                     ):
                         try:
                             line[index] = float(element)
