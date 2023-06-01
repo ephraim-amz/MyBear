@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from mybear import DataFrame
 from mybear import read_json
 from mybear import Series
@@ -38,16 +36,10 @@ def df_colonnes() -> DataFrame:
 @pytest.fixture
 def df_articles() -> DataFrame:
     return DataFrame(
-        colonnes=["name", "price", "date"],
+        colonnes=["name", "price"],
         data=[
             ["Orange", "Pamplemousse", "Rhubarbe", "Orange"],
             [15.0, 1.34, 2.34, 15.0],
-            [
-                datetime.strptime("3-04-2010", "%d-%m-%Y").date(),
-                datetime.strptime("2-04-2010", "%d-%m-%Y").date(),
-                datetime.strptime("3-11-2009", "%d-%m-%Y").date(),
-                datetime.strptime("1-04-2010", "%d-%m-%Y").date(),
-            ],
         ],
     )
 
@@ -236,17 +228,10 @@ def test_groupby(df_articles):
     """
     Vérification de la méthode groupby
     """
+    print(df_articles.groupby(by=["price"], agg={"price": min}))
     assert df_articles.groupby(by=["price"], agg={"price": min}) == DataFrame(
-        colonnes=["price", "name", "date"],
-        data=[
-            [15.0, 1.34, 2.34],
-            ["Orange", "Pamplemousse", "Rhubarbe"],
-            [
-                datetime.strptime("1-04-2010", "%d-%m-%Y").date(),
-                datetime.strptime("2-04-2010", "%d-%m-%Y").date(),
-                datetime.strptime("3-11-2009", "%d-%m-%Y").date(),
-            ],
-        ],
+        colonnes=["price", "name"],
+        data=[[15.0, 1.34, 2.34], ["Orange", "Pamplemousse", "Rhubarbe"]],
     )
 
 

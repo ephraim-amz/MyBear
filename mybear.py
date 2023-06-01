@@ -851,7 +851,10 @@ def cast_into_most_reccurent_type(elements: List) -> List:
     types = []
     list_types = []
     for element in elements:
-        types.append(type(element))
+        if re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", str(element)):
+            types.append(type(datetime.strptime(element, "%d-%m-%Y").date()))
+        else:
+            types.append(type(element))
     occurences = dict(list(set(map(lambda x: (x, types.count(x)), types))))
     type_max = None
     for cle, valeur in occurences.items():
@@ -860,7 +863,10 @@ def cast_into_most_reccurent_type(elements: List) -> List:
     values = []
     for index, el in enumerate(elements):
         try:
-            values.append(type_max.__new__(type_max, el))
+            if re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", str(el)):
+                values.append(datetime.strptime(el, "%d-%m-%Y").date())
+            else:
+                values.append(type_max.__new__(type_max, el))
         except ValueError:
             values.append(None)
     elements.append(values)
