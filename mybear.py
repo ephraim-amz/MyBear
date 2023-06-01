@@ -257,18 +257,23 @@ class DataFrame:
         -------
         DataFrame
             Nouvel instance de la classe DataFrame
-
+        Raises
+        -------
+        AttributeError
+            Paramètre non conforme
         """
-        # TODO: Vérifier que chaque Series ou chaque colonnes aient un nom unique
 
         if kwargs.get("colonnes"):
             if not isinstance(kwargs.get("colonnes"), list):
-                logging.log(
-                    logging.ERROR,
+                logging.exception(
                     f"Type attendu pour le paramètre colonnes : {list}. "
                     f"Type reçu {type(kwargs.get('colonnes'))} ",
                 )
+                raise AttributeError
             else:
+                if len(set(kwargs.get("colonnes"))) != len(kwargs.get("colonnes")):
+                    logging.exception("Les colonnes ne sont pas toutes uniques")
+                    raise AttributeError
                 self.colonnes = kwargs.get("colonnes")
 
         if kwargs.get("colonnes") and kwargs.get("data"):
