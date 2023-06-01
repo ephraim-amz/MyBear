@@ -1,8 +1,5 @@
-import csv
 from datetime import datetime
-import json
 import logging
-import os
 import re
 from typing import Any
 from typing import Callable
@@ -11,225 +8,9 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
-import numpy as np
+from src.series import Series
 
 logging.basicConfig(level=logging.INFO)
-
-
-class Series:
-    """
-    Colonne dans un DataFrame qui contient en plus des données,
-    une étiquette (un nom), et des informations statistiques déjà
-    présentes et calculées automatiquement lors de la création de
-    la Serie (taille, nombre de valeurs manquantes et type de données)
-    """
-
-    def __init__(self, data: Union[range, List[Any]], name: str = None) -> None:
-        """
-        Fonction __init__ permettant de créer une nouvelle instance de la classe Series
-
-        Parameters
-        ----------
-        data : list:
-            Les données qui peuvent être un range ou bien une liste d'élements
-        name : str
-            Le nom qui sera attribué à la série (Valeur None par défaut)
-
-        Returns
-        -------
-        Series
-            Nouvel objet de type Series
-
-        Raises
-        ------
-        AttributeError
-            Paramètre data non conforme.
-        """
-
-        if isinstance(data, range) or isinstance(data, list):
-            self.data = list(data)
-            self.index = range(len(data))
-            self.name = name
-        else:
-            logging.exception(
-                f"Type attendu : {range} ou {list}. Type reçu : {type(data)}"
-            )
-            raise AttributeError
-
-    def __set_name(self, name: str) -> None:
-        """
-        Setter permettant de définir l'attribut name de la classe Series
-
-        Parameters
-        ----------
-        name : str:
-            Le futur nom de l'instance Series
-        name : str
-            Le nom qui sera attribué à la série (Valeur None par défaut)
-        """
-        self.name = name
-
-    def __getitem__(self, index: Union[slice, int]):
-        """
-        Fonction permettant de d'indexer l'instance d'une classe, nécessaire pour la propriété iloc
-
-        Parameters
-        ----------
-        index : slice | int:
-            L'index ou le slice d'index qui sera selectionné
-
-
-        Returns
-        -------
-        Series
-            Nouvel objet de type Series indexée
-
-        Raises
-        ------
-        AttributeError
-            Paramètre index non conforme.
-        """
-
-        if isinstance(index, int):
-            return self.data[index]
-        elif isinstance(index, slice):
-            return Series(
-                data=self.data[index],
-                name=self.name if self.name is not None else "Undefined",
-            )
-        else:
-            logging.exception(
-                logging.ERROR, f"Type attendu : {slice} ou {int}. Reçu : {type(index)}"
-            )
-            raise AttributeError
-
-    @property
-    def iloc(self) -> Any:
-        """
-        Propriété de la classe Series permettant une indexation basée sur la position des éléments
-
-        Returns
-        -------
-        Series
-            L'instance par laquelle la méthode est appelée
-        """
-
-        return self
-
-    def count(self) -> Any:
-        """
-        Récupère le nombre d'élements présent dans une Serie
-
-        Returns
-        -------
-        int
-            Le nombre d'éléments de la serie
-        """
-        return len(self.data)
-
-    def min(self) -> Any:
-        """
-        Récupère le plus petit élément présent dans une Serie
-
-        Returns
-        -------
-        int
-            L'élement le plus petit
-        """
-        if isinstance(self.data, list):
-            return min(self.data)
-
-    def max(self) -> Any:
-        """
-        Récupère le plus grand élément présent dans une Serie
-
-        Returns
-        -------
-        int
-            L'élement le plus grand
-        """
-        return max(self.data)
-
-    def mean(self) -> Any:
-        """
-        Récupère la moyenne des éléments d'une Serie
-
-        Returns
-        -------
-        float
-            La moyenne des éléments de l'instance Serie
-
-        Raises
-        ------
-        Exception
-            La série ne contient pas d'éléments numériques
-        """
-
-        try:
-            return np.mean(self.data)
-        except Exception as e:
-            logging.exception(
-                logging.ERROR, f"La moyenne ne peut pas être calculé car : {e}"
-            )
-            raise e
-
-    def std(self) -> Any:
-        """
-        Récupère l'écart-type des éléments d'une Serie
-
-        Returns
-        -------
-        float
-            L'écart-type des éléments de l'instance Serie
-
-        Raises
-        ------
-        Exception
-            La série ne contient pas d'éléments numériques
-        """
-
-        try:
-            return np.std(self.data)
-        except Exception as e:
-            logging.exception(
-                logging.ERROR, f"L'écart-type ne peut pas être calculé car : {e}"
-            )
-            raise e
-
-    def __str__(self):
-        """
-        Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe Series
-
-        Returns
-        -------
-        str
-            Une chaîne de caractères correspondant à l'instance de la classe Series
-        """
-        str_builder = ["{}\t{}".format(i, val) for i, val in enumerate(self.data)]
-        str_builder.append(f"Name: {self.name}, dtype: {type(self.data[0])}")
-        return "\n".join(str_builder)
-
-    def __len__(self):
-        """
-        Redéfinition de la méthode __len__ permettant d'utiliser len() pour une instance de la classe Series
-
-        Returns
-        -------
-        int
-            Le nombre d'élements
-        """
-        return self.count()
-
-    def __eq__(self, other) -> bool:
-        """
-        Redéfinition de la méthode __eq__ permettant de comparer deux instances de la classe Serie
-
-        Returns
-        -------
-        bool
-            True or False
-        """
-        return self.data == other.data and self.name == other.name
 
 
 class DataFrame:
@@ -292,7 +73,9 @@ class DataFrame:
 
             data = []
             for colonne, liste in zip(kwargs.get("colonnes"), kwargs.get("data")):
-                data.append(cast_into_most_reccurent_type(liste))
+                data.append(
+                    cast_into_most_reccurent_type(liste)
+                )  # cast_into_most_reccurent_type(liste))
 
             self.data = {
                 colonne: Series(data=serie, name=colonne)
@@ -549,6 +332,7 @@ class DataFrame:
                             )
 
                     for agg_value in agg.values():
+                        # datas.append(agg_value(doublon_values))
                         if agg_value == sum:
                             is_float_or_int = all(
                                 [isinstance(el, (float, int)) for el in doublon_values]
@@ -725,128 +509,6 @@ class DataFrame:
         return True
 
 
-def read_csv(path: str, delimiter: str = ","):
-    """
-    Fonction permettant de créer une nouvelle instance de la classe DataFrame à partir d'un fichier csv
-
-    Parameters
-    -------
-    path: str:
-        Le chemin relatif, absolu, ou tout simplement le nom du fichier csv
-    delimiter: str:
-        Le séparateur d'éléments au sein du fichier `virgule par défaut`
-
-    Returns
-    -------
-    DataFrame
-        Une nouvelle instance de la classe DataFrame à partir des données du fichier
-
-
-    Raises
-    -------
-    FileNotFoundError
-        Le fichier n'existe pas
-    ValueError
-        Une erreur de conversion est survenue
-    Exception
-        Une erreur est survenue durant la lecture du fichier
-    """
-    if not os.path.exists(os.path.join(path)):
-        logging.exception(f"Fichier {path} introuvable")
-        raise FileNotFoundError
-
-    try:
-        with open(path, mode="r") as f:
-            reader = csv.reader(f, delimiter=delimiter)
-            lines = [f"{delimiter}".join(row).split(delimiter) for row in reader]
-            columns = lines[0]
-            lines = list(map(list, zip(*lines[1:])))
-            for line in lines:
-                for index, element in enumerate(line):
-                    if element.isdigit() or element.isnumeric():
-                        line[index] = int(element)
-                    if element[0] == "-" and element[1:].isdigit():
-                        line[index] = -int(element[1:])
-                    elif (
-                        "." in element and element[element.index(".") + 1 :].isnumeric()
-                    ):
-                        try:
-                            line[index] = float(element)
-                        except ValueError as ve:
-                            logging.exception("Value can not be converted to float")
-                            raise ve
-                    elif re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", element):
-                        line[index] = datetime.strptime(element, "%d-%m-%Y").date()
-
-            dataframe = DataFrame(colonnes=columns, data=lines)
-    except Exception as e:
-        logging.exception(
-            f"Une erreur est survenue durant la lecture du fichier car : {e}"
-        )
-        raise e
-    else:
-        return dataframe
-
-
-def read_json(path: str, orient: str = "records"):
-    """
-    Fonction permettant de créer une nouvelle instance de la classe DataFrame à partir d'un fichier JSON
-
-    Parameters
-    -------
-    path: str:
-        Le chemin relatif, absolu, ou tout simplement le nom du fichier csv
-    orient: str:
-        L'orientation du fichier JSON `records par défaut`
-
-    Returns
-    -------
-    DataFrame
-        Une nouvelle instance de la classe DataFrame à partir des données du fichier
-
-    Raises
-    -------
-    TypeError
-        Valeur pour l'orientation du fichier JSON invalide
-    FileNotFoundError
-        Le fichier n'existe pas
-    ValueError
-        Une erreur de conversion est survenue
-    Exception
-        Une erreur est survenue durant la lecture du fichier
-    """
-    if orient != "records" and orient != "columns":
-        logging.exception("Valeur pour le paramètre orient non conforme")
-        raise TypeError
-    if not os.path.exists(path):
-        logging.exception(f"Fichier {path} introuvable")
-        raise FileNotFoundError
-
-    try:
-        with open(path, mode="r") as f:
-            json_object = json.load(f)
-            if orient == "records":
-                json_dataframe = DataFrame(
-                    data=[
-                        [obj[key] for obj in json_object]
-                        for key in list(json_object[0].keys())
-                    ],
-                    colonnes=list(json_object[0].keys()),
-                )
-            if orient == "columns":
-                json_dataframe = DataFrame(
-                    data=[list(v.values()) for v in json_object.values()],
-                    colonnes=list(json_object.keys()),
-                )
-    except Exception as exc:
-        logging.exception(
-            f"Une erreur est survenue durant la lecture du fichier car : {exc}"
-        )
-        raise exc
-    else:
-        return json_dataframe
-
-
 def cast_into_most_reccurent_type(elements: List) -> List:
     types = []
     list_types = []
@@ -855,20 +517,20 @@ def cast_into_most_reccurent_type(elements: List) -> List:
             types.append(type(datetime.strptime(element, "%d-%m-%Y").date()))
         else:
             types.append(type(element))
-    occurences = dict(list(set(map(lambda x: (x, types.count(x)), types))))
-    type_max = None
-    for cle, valeur in occurences.items():
-        if valeur == max(list(occurences.values())):
-            type_max = cle
-    values = []
-    for index, el in enumerate(elements):
-        try:
-            if re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", str(el)):
-                values.append(datetime.strptime(el, "%d-%m-%Y").date())
-            else:
-                values.append(type_max.__new__(type_max, el))
-        except ValueError:
-            values.append(None)
-    elements.append(values)
-    list_types.append(types)
-    return values
+        occurences = dict(list(set(map(lambda x: (x, types.count(x)), types))))
+        type_max = None
+        for cle, valeur in occurences.items():
+            if valeur == max(list(occurences.values())):
+                type_max = cle
+        values = []
+        for index, el in enumerate(elements):
+            try:
+                if re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", str(el)):
+                    values.append(datetime.strptime(el, "%d-%m-%Y").date())
+                else:
+                    values.append(type_max.__new__(type_max, el))
+            except ValueError:
+                values.append(None)
+        elements.append(values)
+        list_types.append(types)
+        return values

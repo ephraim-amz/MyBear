@@ -1,10 +1,10 @@
 from typing import Any
 
+from mybear import DataFrame
+from mybear import read_json
+from mybear import Series
 import numpy as np
 import pytest
-from src.mybear import DataFrame
-from src.mybear import read_json
-from src.mybear import Series
 
 
 @pytest.fixture

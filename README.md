@@ -18,12 +18,11 @@ git clone https://github.com/ephraim-amz/MyBear.git
 ## Comment utiliser le module sur son poste ?
 
 ```python
-
-from src import mybear as mb
+import mybear
 ```
 
 ```python
-from src.mybear import Series, DataFrame, read_csv, read_json
+from mybear import DataFrame, Series, read_csv, read_json
 ```
 
 ## Classe Series

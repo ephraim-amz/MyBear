@@ -2,7 +2,7 @@ from typing import Any
 
 import numpy as np
 import pytest
-from src.mybear import Series
+from src.series import Series
 
 
 @pytest.fixture
