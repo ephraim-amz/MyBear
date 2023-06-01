@@ -1,8 +1,10 @@
-from mybear import DataFrame
-from mybear import read_json
-from mybear import Series
+from typing import Any
+
 import numpy as np
 import pytest
+from src.mybear import DataFrame
+from src.mybear import read_json
+from src.mybear import Series
 
 
 @pytest.fixture
@@ -44,7 +46,7 @@ def df_articles() -> DataFrame:
     )
 
 
-def test_min_colonnes(df_colonnes):
+def test_min_colonnes(df_colonnes: DataFrame) -> Any:
     """
     Test case permettant de vérifier la validité de la méthode min() de
     l'instance de la classe DataFrame initialisée avec le constructeur
@@ -58,7 +60,7 @@ def test_min_colonnes(df_colonnes):
     assert DataFrame(series=minimum_colonnes) == df_colonnes.min()
 
 
-def test_min_series(df_series):
+def test_min_series(df_series: DataFrame) -> Any:
     """
     Test case permettant de vérifier la validité de la méthode min() de
     l'instance de la classe DataFrame
@@ -71,7 +73,7 @@ def test_min_series(df_series):
     assert DataFrame(series=minimum_series) == df_series.max()
 
 
-def test_minimums_equals(df_series, df_colonnes):
+def test_minimums_equals(df_series: DataFrame, df_colonnes: DataFrame) -> Any:
     """
     Test case permettant de vérifier qu'un dataframe initialisé avec une
     liste et un autre initialisé avec colonnes + valeurs renvoyent la même
@@ -80,7 +82,7 @@ def test_minimums_equals(df_series, df_colonnes):
     assert df_series.min() == df_colonnes.min()
 
 
-def test_max_series(df_series):
+def test_max_series(df_series: DataFrame) -> Any:
     """
     Test case permettant de vérifier la validité de la méthode max() de
     l'instance de la classe DataFrame initialisée avec le constructeur
@@ -93,7 +95,7 @@ def test_max_series(df_series):
     assert DataFrame(series=maximums_colonnes) == df_series.max()
 
 
-def test_max_colonnes(df_colonnes):
+def test_max_colonnes(df_colonnes: DataFrame) -> Any:
     """
     Test case permettant de vérifier la validité de la méthode max() de
     l'instance de la classe DataFrame initialisée avec le constructeur
@@ -106,7 +108,7 @@ def test_max_colonnes(df_colonnes):
     assert DataFrame(series=maximums_series) == df_colonnes.max()
 
 
-def test_maximums_equals(df_colonnes, df_series):
+def test_maximums_equals(df_colonnes: DataFrame, df_series: DataFrame) -> Any:
     """
     Test case permettant de vérifier qu'un dataframe initialisé avec
     une liste et un autre initialisé avec colonnes + valeurs
@@ -115,7 +117,7 @@ def test_maximums_equals(df_colonnes, df_series):
     assert df_series.max() == df_colonnes.max()
 
 
-def test_min_inferior_to_max(df_colonnes, df_series):
+def test_min_inferior_to_max(df_colonnes: DataFrame, df_series: DataFrame) -> Any:
     """
     Test case permettant de vérifier que la méthode min() retourne une
     valeur inférieure à la méthode max()
@@ -129,7 +131,7 @@ def test_min_inferior_to_max(df_colonnes, df_series):
     ]
 
 
-def test_count_series(df_colonnes, df_series):
+def test_count_series(df_colonnes: DataFrame, df_series: DataFrame) -> Any:
     """
     Vérification de la méthode count() pour un dataframe initialisé avec
     une liste de series
@@ -137,7 +139,7 @@ def test_count_series(df_colonnes, df_series):
     assert len(df_series) == df_series.count()
 
 
-def test_count_colonnes(df_colonnes, df_series):
+def test_count_colonnes(df_colonnes: DataFrame, df_series: DataFrame) -> Any:
     """
     Test case permettant de vérifier que la méthode pour un dataframe
     initialisée avec les colonnes et données
@@ -145,7 +147,7 @@ def test_count_colonnes(df_colonnes, df_series):
     assert len(df_colonnes) == df_colonnes.count()
 
 
-def test_count_equals(df_series, df_colonnes):
+def test_count_equals(df_series: DataFrame, df_colonnes: DataFrame) -> Any:
     """
     Test case permettant de vérifier qu'un dataframe initialisé avec une
     liste et un autre initialisé avec colonnes + valeurs renvoyent la même
@@ -154,7 +156,7 @@ def test_count_equals(df_series, df_colonnes):
     df_series.count() == df_colonnes.count()
 
 
-def test_std_series(df_series):
+def test_std_series(df_series: DataFrame) -> Any:
     """
     Vérification de l'écart-type pour une dataframe initialisé avec une
      liste de series
@@ -167,7 +169,7 @@ def test_std_series(df_series):
     assert DataFrame(series=std_series).data == df_series.std().data
 
 
-def test_std_colonnes(df_colonnes):
+def test_std_colonnes(df_colonnes: DataFrame) -> Any:
     """
     Vérification de l'écart-type pour une dataframe initialisé avec les
      colonnes + données
@@ -180,7 +182,7 @@ def test_std_colonnes(df_colonnes):
     assert DataFrame(series=std_colonnes) == df_colonnes.std()
 
 
-def test_std_equals(df_series, df_colonnes):
+def test_std_equals(df_series: DataFrame, df_colonnes: DataFrame) -> Any:
     """
     Vérification de l'écart-type pour une dataframe initialisé avec les
     colonnes + données
@@ -189,7 +191,7 @@ def test_std_equals(df_series, df_colonnes):
     df_series.std() == df_colonnes.std()
 
 
-def test_mean_colonnes(df_colonnes):
+def test_mean_colonnes(df_colonnes: DataFrame) -> Any:
     """
     Test case permettant de vérifier que la méthode mean() de la classe
     DataFrame retourne la bonne valeur
@@ -202,7 +204,7 @@ def test_mean_colonnes(df_colonnes):
     assert DataFrame(series=mean_colonnes) == df_colonnes.mean()
 
 
-def test_mean_equals(df_series, df_colonnes):
+def test_mean_equals(df_series: DataFrame, df_colonnes: DataFrame) -> Any:
     """
     Test case permettant de vérifier qu'un dataframe initialisé avec une
     liste et un autre initialisé avec colonnes + valeurs renvoyant la même
@@ -212,7 +214,7 @@ def test_mean_equals(df_series, df_colonnes):
     assert df_series.mean() == df_colonnes.mean()
 
 
-def test_mean_series(df_series):
+def test_mean_series(df_series: DataFrame) -> Any:
     """
     Vérification de la moyenne pour une dataframe initialisée
     à partir d'une liste de series
@@ -224,7 +226,7 @@ def test_mean_series(df_series):
     assert DataFrame(series=mean_series) == df_series.mean()
 
 
-def test_groupby(df_articles):
+def test_groupby(df_articles: DataFrame) -> Any:
     """
     Vérification de la méthode groupby
     """
@@ -236,19 +238,21 @@ def test_groupby(df_articles):
 
 
 @pytest.mark.skip()
-def test_join(df_colonnes, df_series):
+def test_join(df_colonnes: DataFrame, df_series: DataFrame) -> Any:
     """
     Vérification de la méthode groupby
     """
     df_colonnes.join(other=df_series, right_on="price", left_on="date")
 
 
-def test_same_data_json_orient():
+def test_same_data_json_orient() -> Any:
     """
     Vérification de la méthode groupby
     """
-    df_orient_records = read_json(path="oriented_records.json")
-    df_orient_columns = read_json(path="oriented_columns.json", orient="columns")
+    df_orient_records = read_json(path="../data/oriented_records.json")
+    df_orient_columns = read_json(
+        path="../data/oriented_columns.json", orient="columns"
+    )
     assert [v.data for v in df_orient_columns.data.values()] == [
         v.data for v in df_orient_records.data.values()
     ]
@@ -257,14 +261,14 @@ def test_same_data_json_orient():
     assert df_orient_columns == df_orient_records
 
 
-def test_iloc_series_unique_value(first_serie):
+def test_iloc_series_unique_value(first_serie: Series) -> Any:
     """
     Vérification de la méthode iloc renvoyant une seule valeur
     """
     assert first_serie.data[1] == first_serie.iloc[1]
 
 
-def test_iloc_series_slice(first_serie):
+def test_iloc_series_slice(first_serie: Series) -> Any:
     """
     Vérification de la méthode iloc renvoyant une seule instance de la
     classe Series
@@ -272,7 +276,7 @@ def test_iloc_series_slice(first_serie):
     assert Series(data=range(1, 4), name=first_serie.name) == first_serie.iloc[1:-1]
 
 
-def test_iloc_dataframe_unique_value(df_series):
+def test_iloc_dataframe_unique_value(df_series: DataFrame) -> Any:
     """
     Vérification de la méthode iloc renvoyant un DataFrame ayant une
     seule valeur
@@ -286,7 +290,7 @@ def test_iloc_dataframe_unique_value(df_series):
     )
 
 
-def test_iloc_dataframe_slice_int(df_series):
+def test_iloc_dataframe_slice_int(df_series: DataFrame) -> Any:
     """
     Vérification de la méthode iloc renvoyant une instance de la classe
     Series pour une slice de lignes mais une seule colonne
@@ -303,7 +307,7 @@ def test_iloc_dataframe_slice_int(df_series):
     )
 
 
-def test_iloc_dataframe_int_slice(df_series):
+def test_iloc_dataframe_int_slice(df_series: DataFrame) -> Any:
     """
     Vérification de la méthode iloc renvoyant une instance de la classe
     DataFrame ayant une seule ligne pour chaque colonne selectionnée
@@ -317,7 +321,7 @@ def test_iloc_dataframe_int_slice(df_series):
     )
 
 
-def test_iloc_dataframe_slice_slice(df_series):
+def test_iloc_dataframe_slice_slice(df_series: DataFrame) -> Any:
     """
     Vérification de la méthode iloc renvoyant une instance de la classe
     DataFrame ayant plusieurs lignes pour chaque colonne selectionnée
