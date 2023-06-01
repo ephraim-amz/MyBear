@@ -259,6 +259,7 @@ class DataFrame:
             Nouvel instance de la classe DataFrame
 
         """
+        # TODO: Vérifier que chaque Series ou chaque colonnes aient un nom unique
 
         if kwargs.get("colonnes"):
             if not isinstance(kwargs.get("colonnes"), list):
@@ -284,29 +285,9 @@ class DataFrame:
                 )
                 raise AttributeError
 
-            list_types = []
             data = []
             for colonne, liste in zip(kwargs.get("colonnes"), kwargs.get("data")):
-                types = []
-                for element in liste:
-                    types.append(type(element))
-
-                occurences = dict(list(set(map(lambda x: (x, types.count(x)), types))))
-
-                type_max = None
-                for cle, valeur in occurences.items():
-                    if valeur == max(list(occurences.values())):
-                        type_max = cle
-                values = []
-                for index, el in enumerate(liste):
-                    try:
-                        values.append(type_max.__new__(type_max, el))
-                    except ValueError:
-                        values.append(None)
-
-                data.append(values)
-
-                list_types.append(types)
+                data.append(cast_into_most_reccurent_type(liste))
 
             self.data = {
                 colonne: Series(data=serie, name=colonne)
@@ -316,6 +297,9 @@ class DataFrame:
         elif kwargs.get("series"):
             series_list = kwargs.get("series")
             if series_list:
+                for index, serie in enumerate(series_list):
+                    series_list[index].data = cast_into_most_reccurent_type(serie.data)
+
                 self.colonnes = [
                     serie.name if serie.name is not None else f"Unnamed {index}"
                     for (index, serie) in enumerate(series_list)
@@ -856,3 +840,24 @@ def read_json(path: str, orient: str = "records"):
         raise exc
     else:
         return json_dataframe
+
+
+def cast_into_most_reccurent_type(elements: List) -> List:
+    types = []
+    list_types = []
+    for element in elements:
+        types.append(type(element))
+    occurences = dict(list(set(map(lambda x: (x, types.count(x)), types))))
+    type_max = None
+    for cle, valeur in occurences.items():
+        if valeur == max(list(occurences.values())):
+            type_max = cle
+    values = []
+    for index, el in enumerate(elements):
+        try:
+            values.append(type_max.__new__(type_max, el))
+        except ValueError:
+            values.append(None)
+    elements.append(values)
+    list_types.append(types)
+    return values
