@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Orange",
+    "price": 15.0,
+    "date": "2010",
+    "is_left": true
+  },
+  {
+    "name": "Pamplemousse",
+    "price": 15.34,
+    "date": "2021",
+    "is_left": false
+  },
+  {
+    "name": "Rhubarbe",
+    "price": 2.34,
+    "date": "2009",
+    "is_left": false
+  }
+]

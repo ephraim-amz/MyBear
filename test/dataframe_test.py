@@ -237,13 +237,18 @@ def test_groupby(df_articles: DataFrame) -> Any:
     )
 
 
-@pytest.mark.skip()
 def test_join(df_colonnes: DataFrame, df_series: DataFrame) -> Any:
     """
     Vérification de la méthode groupby
     """
-    df_colonnes.join(other=df_series, right_on="price", left_on="date")
-
+    right_on = "price"
+    left_on = "date"
+    df_joined = df_colonnes.join(other=df_series, right_on=right_on, left_on=left_on)
+    assert any(list(map(lambda x: left_on in df_colonnes.colonnes, df_colonnes.colonnes)))
+    assert any(list(map(lambda x: right_on in df_colonnes.colonnes, df_colonnes.colonnes)))
+    if left_on in df_colonnes.colonnes or right_on in df_series.colonnes:
+        assert "_" in df_joined.colonnes
+        
 
 def test_same_data_json_orient() -> Any:
     """
