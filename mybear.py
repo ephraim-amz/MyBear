@@ -1,3 +1,4 @@
+import copy
 import csv
 from datetime import datetime
 import json
@@ -57,7 +58,7 @@ class Series:
             )
             raise AttributeError
 
-    def __set_name(self, name: str) -> None:
+    def set_name(self, name: str) -> None:
         """
         Setter permettant de définir l'attribut name de la classe Series
 
@@ -220,6 +221,18 @@ class Series:
             Le nombre d'élements
         """
         return self.count()
+
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index >= len(self.data):
+            raise StopIteration
+        else:
+            element = self.iloc[self.index]
+            self.index += 1
+            return element
 
 
 class DataFrame:
@@ -546,11 +559,11 @@ class DataFrame:
             return new_dataframe
 
     def join(
-        self,
-        other,
-        left_on: List[str] | str,
-        right_on: List[str] | str,
-        how: str = "left",
+            self,
+            other,
+            left_on: List[str] | str,
+            right_on: List[str] | str,
+            how: str = "left",
     ):
         """
         Permet de combiner des données provenant de deux DataFrames
@@ -575,7 +588,7 @@ class DataFrame:
             )
         how_list = ["left", "right", "inner", "outer"]
         if not isinstance(left_on, (list, str)) and not isinstance(
-            right_on, (list, str)
+                right_on, (list, str)
         ):
             logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
         if how not in how_list:
@@ -584,8 +597,6 @@ class DataFrame:
                 f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}",
             )
 
-        result = []
-
         # Vérification des types des clés
         if isinstance(left_on, str):
             left_on = [left_on]
@@ -593,38 +604,34 @@ class DataFrame:
             right_on = [right_on]
 
         if how == "left":
-            # Parcours des entrées de l'objet self
-            for entry_self in self:
-                entry_result = entry_self.copy()
-                matching_entries = []
-
-                # Parcours des entrées de l'objet other
-                for entry_other in other:
-                    matching = True
-                    # Vérification des correspondances des clés
-                    for left_key, right_key in zip(left_on, right_on):
-                        if entry_self[left_key] != entry_other[right_key]:
-                            matching = False
-                            break
-
-                    if matching:
-                        matching_entries.append(entry_other)
-
-                if matching_entries:
-                    entry_result["matching_entries"] = matching_entries
+            left_dataframe = copy.deepcopy(self)
+            for element in other:
+                if element.name in left_dataframe.colonnes:
+                    left_dataframe.colonnes.append(
+                        element.name + "_y")
+                    left_dataframe.data.update(
+                        {element.name + "_y": element})
                 else:
-                    entry_result["matching_entries"] = []
+                    left_dataframe.colonnes.append(
+                        element.name)
+                    left_dataframe.data.update(
+                        {element.name: element})
+                for index, value in enumerate(element):
+                    if left_dataframe.iloc[index, left_dataframe.colonnes.index(element.name)] != left_dataframe.data[
+                        left_on[0] + "_y"]:
+                        ...
+                        # left_dataframe.data[right_on[0]].data[0] = None
+                        # left_dataframe.iloc[0,1]
+                        #left_dataframe.iloc[]
+                    else:
+                        ...
+                        # left_dataframe.data[right_on[0]] = value
 
-                result.append(entry_result)
+            col_to_del = left_on[0] + "_y"
+            del left_dataframe.data[col_to_del]
+            left_dataframe.colonnes.remove(col_to_del)
 
-        elif how == "right":
-            ...
-        elif how == "inner":
-            ...
-        elif how == "outer":
-            ...
-
-        return result
+            return left_dataframe
 
     def __str__(self):
         """
@@ -640,9 +647,9 @@ class DataFrame:
         for index, element in enumerate(zip(*data)):
             p += "\n"
             p += (
-                str(index)
-                + " "
-                + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
+                    str(index)
+                    + " "
+                    + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
             )
         return p
 
@@ -713,7 +720,7 @@ def read_csv(path: str, delimiter: str = ","):
                     if element[0] == "-" and element[1:].isdigit():
                         line[index] = -int(element[1:])
                     elif (
-                        "." in element and element[element.index(".") + 1:].isnumeric()
+                            "." in element and element[element.index(".") + 1:].isnumeric()
                     ):
                         try:
                             line[index] = float(element)
@@ -790,3 +797,116 @@ def read_json(path: str, orient: str = "records"):
         raise exc
     else:
         return json_dataframe
+
+    """
+        def join(
+                self,
+                other,
+                left_on: List[str] | str,
+                right_on: List[str] | str,
+                how: str = "left",
+        ):
+
+            Permet de combiner des données provenant de deux DataFrames
+
+            Parameters
+            -------
+            other: DataFrame:
+                Une instance de la classe DataFrame
+            left_on : List | str: Le nom de la ou des colonnes de la dataframe de gauche ``self``
+            right_on : List | str: Le nom de la ou des colonnes de la dataframe de droite ``other``
+            how : str: La manière dont la jointure sera faite ``à gauche, à droite, intérieures et pleines``
+
+            Returns
+            -------
+            DataFrame
+                Le nouvel objet DataFrame ayant été combiné avec une l'autre dataframe
+
+            if not isinstance(other, DataFrame):
+                logging.log(
+                    logging.CRITICAL,
+                    f"Type attendu pour other : {DataFrame}. Got {type(other)}",
+                )
+            how_list = ["left", "right", "inner", "outer"]
+            if not isinstance(left_on, (list, str)) and not isinstance(
+                    right_on, (list, str)
+            ):
+                logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
+            if how not in how_list:
+                logging.log(
+                    logging.CRITICAL,
+                    f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}",
+                )
+
+            # Vérification des types des clés
+            if isinstance(left_on, str):
+                left_on = [left_on]
+            if isinstance(right_on, str):
+                right_on = [right_on]
+
+            if how == "left":
+
+                #if type(self.data.get(left_on[0]).data[0]) != type(other.data.get(right_on[0]).data[0]):
+                 #   logging.exception("Problème de type")
+                  #  raise AttributeError
+                left_dataframe = copy.deepcopy(self)
+                left_series = []
+                right_series = []
+                for serie in left_dataframe:
+                    if serie.name in other.colonnes:
+                        old_name = serie.name
+                        serie.set_name(old_name + "_x")
+                        left_series.append(serie)
+
+                        for i in range(len(left_series[0].data)):
+                            for j in range(len(other.data[old_name].data)):
+                                if left_series[0].data[i] == other.data[old_name].data[j]:
+
+                        right_serie = other.data.get(old_name)
+                        right_serie.set_name(old_name + "_y")
+                        for i in range(left_series[0].count()):
+                            if serie.data[i] == right_serie.data[i]:
+
+                                right_serie.data[i] = other.data.get(right_on[0]).iloc[i]
+                                #right_serie.data.append(other.iloc[i,1])
+                            else:
+                                right_serie.data[i] = None
+                            print(i)
+
+                            #matching = serie.data[i] == right_serie.data[i]
+                            #if not matching:
+                            #    right_serie.data.append(None)
+                            #else:
+                           #     right_serie.data.append(other.iloc[i, i - 1])
+
+
+                        right_series.append(right_serie)
+
+                df = DataFrame(series=left_series + right_series)
+                col_to_del = left_on[0] + "_y"
+                del df.data[col_to_del]
+                df.colonnes.remove(col_to_del)
+
+                return df
+
+            elif how == "right":
+
+                left_dataframe = copy.deepcopy(other)
+                left_series = []
+                right_series = []
+                for serie in left_dataframe:
+                    if serie.name in self.colonnes:
+                        old_name = serie.name
+                        serie.set_name(old_name + "_x")
+                        left_series.append(serie)
+                        right_serie = self.data.get(old_name)
+                        right_serie.set_name(old_name + "_y")
+                        right_series.append(right_serie)
+                df = DataFrame(series=left_series + right_series)
+
+                return df
+            elif how == "inner":
+                ...
+            elif how == "outer":
+                ...
+    """
