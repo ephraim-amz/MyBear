@@ -19,7 +19,7 @@ class DataFrame:
     Ensemble de Serie ayant toutes les mêmes listes d'index
     """
 
-    def __init__(self, **kwargs) -> Any:
+    def __init__(self, **kwargs: dict[str, Any]) -> Any:
         """
         Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir d'un
         ensemble de Series ou à partir de données et colonnes
@@ -372,7 +372,7 @@ class DataFrame:
             left_on: List[str] | str,
             right_on: List[str] | str,
             how: str = "left",
-    ):
+    ) -> Any:
         """
         Permet de combiner des données provenant de deux DataFrames
 
