@@ -19,7 +19,7 @@ class DataFrame:
     Ensemble de Serie ayant toutes les mêmes listes d'index
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> Any:
         """
         Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir d'un
         ensemble de Series ou à partir de données et colonnes
@@ -98,7 +98,7 @@ class DataFrame:
                     colonne: serie for colonne, serie in zip(self.colonnes, series_list)
                 }
 
-    def __getitem__(self, index: Tuple[Union[int, slice], Union[int, slice]]):
+    def __getitem__(self, index: Tuple[Union[int, slice], Union[int, slice]]) -> Any:
         """
         Fonction permettant de d'indexer l'instance d'une classe, nécessaire pour la propriété iloc
 
@@ -226,7 +226,7 @@ class DataFrame:
         ]
         return DataFrame(series=maximums)
 
-    def mean(self):
+    def mean(self) -> Any:
         """
         Calcul de la moyenne de l'ensemble des colonnes d'une dataframe
 
@@ -246,7 +246,7 @@ class DataFrame:
         ]
         return DataFrame(series=moyennes)
 
-    def std(self):
+    def std(self) -> Any:
         """
         Calcul de l'écart-type de l'ensemble des colonnes d'une dataframe
 
@@ -266,7 +266,7 @@ class DataFrame:
         ]
         return DataFrame(series=stds)
 
-    def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]):
+    def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]) -> Any:
         """
         Permet de combiner et d'agréger plusieurs lignes d'un DataFrame en formant des groupes à partir d'une
         ou plusieurs colonnes.
@@ -368,7 +368,7 @@ class DataFrame:
 
     def join(
             self,
-            right_dataframe,
+            other,
             left_on: List[str] | str,
             right_on: List[str] | str,
             how: str = "left",
@@ -378,7 +378,7 @@ class DataFrame:
 
         Parameters
         -------
-        right_dataframe: DataFrame:
+        other: DataFrame:
             Une instance de la classe DataFrame
         left_on : List | str: Le nom de la ou des colonnes de la dataframe de gauche ``self``
         right_on : List | str: Le nom de la ou des colonnes de la dataframe de droite ``other``
@@ -389,10 +389,10 @@ class DataFrame:
         DataFrame
             Le nouvel objet DataFrame ayant été combiné avec une l'autre dataframe
         """
-        if not isinstance(right_dataframe, DataFrame):
+        if not isinstance(other, DataFrame):
             logging.log(
                 logging.CRITICAL,
-                f"Type attendu pour other : {DataFrame}. Got {type(right_dataframe)}",
+                f"Type attendu pour other : {DataFrame}. Got {type(other)}",
             )
         how_list = ["left", "right", "inner", "outer"]
         if not isinstance(left_on, (list, str)) and not isinstance(
@@ -402,7 +402,7 @@ class DataFrame:
         if how not in how_list:
             logging.log(
                 logging.CRITICAL,
-                f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(right_dataframe)}",
+                f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}",
             )
 
         # Vérification des types des clés
@@ -411,7 +411,11 @@ class DataFrame:
         if isinstance(right_on, str):
             right_on = [right_on]
 
-        def add_suffix(col, i, df, suffix):
+        def add_suffix(col: str, i: int, df: DataFrame, suffix: str):
+            """
+            Fonction utilitaire permettant d'ajouter un suffixe
+            sur le dataframe de gauche ou droite en fonction de sa présence
+            """
             df.colonnes[i] = col + suffix
             df.data.get(col).set_name(col + suffix)
             df.data[col + suffix] = df.data.get(col)
@@ -419,28 +423,39 @@ class DataFrame:
 
         if how == "left":
             left_dataframe = copy.deepcopy(self)
-            for index, colonne in enumerate(right_dataframe.colonnes):
+            unique_right_cols = []
+            for index, colonne in enumerate(other.colonnes):
                 if colonne in left_dataframe.colonnes:
-                    add_suffix(colonne, index, right_dataframe, "_y")
+                    add_suffix(colonne, index, other, "_y")
                     add_suffix(colonne, index, left_dataframe, "_x")
+                else:
+                    unique_right_cols.append(other.data.get(colonne))
+
             right_series_empty = []
-            for serie in right_dataframe:
-                right_series_empty.append(Series(data=[None] * serie.count(), name=serie.name))
+            for serie in other:
+                if "_y" in serie.name:
+                    right_series_empty.append(Series(data=[None] * serie.count(), name=serie.name))
+            right_series_empty.extend(unique_right_cols)
             left_series = list(left_dataframe.data.values())
             return DataFrame(series=left_series + right_series_empty)
         if how == "right":
             left_dataframe = copy.deepcopy(self)
-            for index, colonne in enumerate(right_dataframe.colonnes):
+            unique_right_cols = []
+            for index, colonne in enumerate(other.colonnes):
                 if colonne in left_dataframe.colonnes:
-                    add_suffix(colonne, index, right_dataframe, "_y")
+                    add_suffix(colonne, index, other, "_y")
                     add_suffix(colonne, index, left_dataframe, "_x")
+                else:
+                    unique_right_cols.append(other.data.get(colonne))
             left_series_empty = []
             for serie in left_dataframe:
-                left_series_empty.append(Series(data=[None] * serie.count(), name=serie.name))
-            right_series = list(right_dataframe.data.values())
+                if "_x" in serie.name:
+                    left_series_empty.append(Series(data=[None] * serie.count(), name=serie.name))
+            right_series = list(other.data.values())
+            right_series.append(right_series.pop(0))
             return DataFrame(series=left_series_empty + right_series)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe DataFrame
 
@@ -460,7 +475,7 @@ class DataFrame:
             )
         return p
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         """
         Redéfinition de la méthode __iter__ permettant d'itérer sur chaque série composant un DataFrame
         Returns
@@ -471,7 +486,7 @@ class DataFrame:
         self.index = 0
         return self
 
-    def __next__(self):
+    def __next__(self) -> Any:
         """
         Redéfinition de la méthode __next__ permettant de passer à la série suivante d'un DataFrame
         Raises
@@ -486,7 +501,7 @@ class DataFrame:
             self.index += 1
             return serie
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Redéfinition de la méthode __len__ permettant d'utiliser len() pour une instance de la classe DataFrame
 
@@ -497,7 +512,7 @@ class DataFrame:
         """
         return self.count()
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Redéfinition de la méthode __eq__ permettant de comparer deux instances de la classe DataFrame
 
@@ -535,7 +550,7 @@ def cast_into_most_reccurent_type(elements: List) -> List:
             try:
                 if re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", str(el)):
                     values.append(datetime.strptime(el, "%d-%m-%Y").date())
-                elif isinstance(el, None.__class__):
+                elif el is None:
                     values.append(None)
                 else:
                     values.append(type_max.__new__(type_max, el))

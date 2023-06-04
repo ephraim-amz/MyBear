@@ -16,7 +16,7 @@ class Series:
     la Serie (taille, nombre de valeurs manquantes et type de données)
     """
 
-    def __init__(self, data: Union[range, List[Any]], name: str = None) -> None:
+    def __init__(self, data: Union[range, List[Any]], name: str = None) -> Any:
         """
         Fonction __init__ permettant de créer une nouvelle instance de la classe Series
 
@@ -48,7 +48,7 @@ class Series:
             )
             raise AttributeError
 
-    def set_name(self, name: str) -> None:
+    def set_name(self, name: str) -> Any:
         """
         Setter permettant de définir l'attribut name de la classe Series
 
@@ -61,7 +61,7 @@ class Series:
         """
         self.name = name
 
-    def __getitem__(self, index: Union[slice, int]):
+    def __getitem__(self, index: Union[slice, int]) -> Any:
         """
         Fonction permettant de d'indexer l'instance d'une classe, nécessaire pour la propriété iloc
 
@@ -119,7 +119,7 @@ class Series:
         """
         return len(self.data)
 
-    def min(self) -> Any:
+    def min(self) -> int:
         """
         Récupère le plus petit élément présent dans une Serie
 
@@ -131,7 +131,7 @@ class Series:
         if isinstance(self.data, list):
             return min(self.data)
 
-    def max(self) -> Any:
+    def max(self) -> int:
         """
         Récupère le plus grand élément présent dans une Serie
 
@@ -142,7 +142,7 @@ class Series:
         """
         return max(self.data)
 
-    def mean(self) -> Any:
+    def mean(self) -> float:
         """
         Récupère la moyenne des éléments d'une Serie
 
@@ -165,7 +165,7 @@ class Series:
             )
             raise e
 
-    def std(self) -> Any:
+    def std(self) -> float:
         """
         Récupère l'écart-type des éléments d'une Serie
 
@@ -188,7 +188,7 @@ class Series:
             )
             raise e
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Redéfinition de la méthode __str__ permettant de formatter l'affichage de l'instance d'une classe Series
 
@@ -201,7 +201,7 @@ class Series:
         str_builder.append(f"Name: {self.name}, dtype: {type(self.data[0])}")
         return "\n".join(str_builder)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Redéfinition de la méthode __len__ permettant d'utiliser len() pour une instance de la classe Series
 
@@ -234,7 +234,7 @@ class Series:
         self.index = 0
         return self
 
-    def __next__(self):
+    def __next__(self) -> Any:
         """
         Redéfinition de la méthode __next__ permettant de passer à la valeur suivant d'un DataFrame
         Raises
