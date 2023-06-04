@@ -19,7 +19,7 @@ class DataFrame:
     Ensemble de Serie ayant toutes les mêmes listes d'index
     """
 
-    def __init__(self, **kwargs: dict[str, Any]) -> Any:
+    def __init__(self, **kwargs) -> None:
         """
         Fonction __init__ permettant de créer une nouvelle instance de la classe DataFrame à partir d'un
         ensemble de Series ou à partir de données et colonnes
@@ -266,8 +266,9 @@ class DataFrame:
         ]
         return DataFrame(series=stds)
 
-      
-    def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]) -> Any:
+    def groupby(
+        self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]
+    ) -> Any:
         """
         Permet de combiner et d'agréger plusieurs lignes d'un DataFrame en formant des groupes à partir d'une
         ou plusieurs colonnes.
@@ -368,13 +369,12 @@ class DataFrame:
             return new_dataframe
 
     def join(
-            self,
-            other,
-            left_on: List[str] | str,
-            right_on: List[str] | str,
-            how: str = "left",
+        self,
+        other,
+        left_on: List[str] | str,
+        right_on: List[str] | str,
+        how: str = "left",
     ) -> Any:
-
         """
         Permet de combiner des données provenant de deux DataFrames
 
@@ -438,7 +438,9 @@ class DataFrame:
             right_series_empty = []
             for serie in other:
                 if "_y" in serie.name:
-                    right_series_empty.append(Series(data=[None] * serie.count(), name=serie.name))
+                    right_series_empty.append(
+                        Series(data=[None] * serie.count(), name=serie.name)
+                    )
             right_series_empty.extend(unique_right_cols)
             left_series = list(left_dataframe.data.values())
             return DataFrame(series=left_series + right_series_empty)
@@ -454,7 +456,9 @@ class DataFrame:
             left_series_empty = []
             for serie in left_dataframe:
                 if "_x" in serie.name:
-                    left_series_empty.append(Series(data=[None] * serie.count(), name=serie.name))
+                    left_series_empty.append(
+                        Series(data=[None] * serie.count(), name=serie.name)
+                    )
             right_series = list(other.data.values())
             right_series.append(right_series.pop(0))
             return DataFrame(series=left_series_empty + right_series)
@@ -473,9 +477,9 @@ class DataFrame:
         for index, element in enumerate(zip(*data)):
             p += "\n"
             p += (
-                    str(index)
-                    + " "
-                    + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
+                str(index)
+                + " "
+                + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
             )
         return p
 
@@ -498,12 +502,12 @@ class DataFrame:
         StopIteration
             Arrêt de la boucle lorsque l'index est supérieur au nombre d'éléments
         """
-                str(index)
-                + " "
-                + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
-            )
-        return p
-
+        if self.index >= len(self.data.keys()):
+            raise StopIteration
+        else:
+            serie = self.iloc[:, self.index]
+            self.index += 1
+            return serie
 
     def __len__(self) -> int:
         """
