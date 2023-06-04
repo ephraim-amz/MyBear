@@ -1,3 +1,5 @@
 .idea/
 __pycache__/
-.pre-commit-config.yaml
+.pytest_cache/
+data/
+test/.pytest_cache/

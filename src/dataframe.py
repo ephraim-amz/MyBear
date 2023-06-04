@@ -266,6 +266,7 @@ class DataFrame:
         ]
         return DataFrame(series=stds)
 
+      
     def groupby(self, by: List[str] | str, agg: Dict[str, Callable[[List[Any]], Any]]) -> Any:
         """
         Permet de combiner et d'agréger plusieurs lignes d'un DataFrame en formant des groupes à partir d'une
@@ -373,6 +374,7 @@ class DataFrame:
             right_on: List[str] | str,
             how: str = "left",
     ) -> Any:
+
         """
         Permet de combiner des données provenant de deux DataFrames
 
@@ -396,7 +398,7 @@ class DataFrame:
             )
         how_list = ["left", "right", "inner", "outer"]
         if not isinstance(left_on, (list, str)) and not isinstance(
-                right_on, (list, str)
+            right_on, (list, str)
         ):
             logging.log(logging.CRITICAL, "Argument left_on ou right_on non conformes")
         if how not in how_list:
@@ -404,6 +406,8 @@ class DataFrame:
                 logging.CRITICAL,
                 f"Argument attendu pour how : {' ou '.join(how_list)}. Got {type(other)}",
             )
+
+        result = []
 
         # Vérification des types des clés
         if isinstance(left_on, str):
@@ -494,12 +498,12 @@ class DataFrame:
         StopIteration
             Arrêt de la boucle lorsque l'index est supérieur au nombre d'éléments
         """
-        if self.index >= len(self.data.keys()):
-            raise StopIteration
-        else:
-            serie = self.iloc[:, self.index]
-            self.index += 1
-            return serie
+                str(index)
+                + " "
+                + "   ".join(str(item).ljust(len(self.colonnes)) for item in element)
+            )
+        return p
+
 
     def __len__(self) -> int:
         """

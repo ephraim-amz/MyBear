@@ -248,7 +248,7 @@ def test_join(df_colonnes: DataFrame, df_series: DataFrame) -> Any:
     assert any(list(map(lambda x: right_on in df_colonnes.colonnes, df_colonnes.colonnes)))
     if left_on in df_colonnes.colonnes or right_on in df_series.colonnes:
         assert "_" in df_joined.colonnes
-
+        
 
 def test_same_data_json_orient() -> Any:
     """
