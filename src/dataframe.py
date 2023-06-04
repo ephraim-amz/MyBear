@@ -335,30 +335,10 @@ class DataFrame:
                             )
 
                     for agg_value in agg.values():
-                        # datas.append(agg_value(doublon_values))
-                        if agg_value == sum:
-                            is_float_or_int = all(
-                                [isinstance(el, (float, int)) for el in doublon_values]
-                            )
-                            if is_float_or_int:
-                                datas.append(agg[by[0]](doublon_values))
-                            else:
-                                datas.append("".join(doublon_values))
-
-                            datas += [
-                                self.iloc[i, self.colonnes.index(col)]
-                                for i in range(self.data.get(col).count())
-                                if i not in doublon_indexes[0]
-                            ]
-
-                        if agg_value == max or agg_value == min:
+                        try:
                             datas.append(agg_value(doublon_values))
-
-                            datas += [
-                                self.iloc[i, self.colonnes.index(col)]
-                                for i in range(self.data.get(col).count())
-                                if i not in doublon_indexes[0]
-                            ]
+                        except:
+                            ...
 
                     series_list.append(Series(data=datas, name=col))
 
