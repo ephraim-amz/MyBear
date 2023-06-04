@@ -430,43 +430,15 @@ class DataFrame:
             return DataFrame(series=left_series + right_series_empty)
         if how == "right":
             left_dataframe = copy.deepcopy(self)
-            for element in right_dataframe:
-                # if element.name in left_dataframe.colonnes:
-                #     left_dataframe.colonnes.append(
-                #         element.name + "_y")
-                #     left_dataframe.data.update(
-                #         {element.name + "_y": element})
-                # else:
-                #     left_dataframe.colonnes.append(
-                #         element.name)
-                #     left_dataframe.data.update(
-                #         {element.name: element})
-                for index, value in enumerate(element):
-                    if element.name in left_dataframe.colonnes:
-                        left_df_value = left_dataframe.iloc[index, left_dataframe.colonnes.index(element.name)]
-                        right_values = list(right_dataframe.iloc[:, left_dataframe.colonnes.index(element.name)])
-                        if index == 0:
-                            print(left_df_value, right_values)
-                        if left_df_value in right_values:
-                            m = list(right_dataframe.data.get(element.name))
-                            m[index] = None
-                            right_dataframe.data.update({element.name: Series(data=m, name=element.name)})
-
-                            # left_dataframe.iloc[]
-                            # left_elements = left_dataframe.iloc[:, left_dataframe.colonnes.index(element.name)]
-                            # if element.data[0]
-                            # print(left_elements.data)
-                        # left_dataframe.data[right_on[0]].data[0] = None
-                        # left_dataframe.iloc[0,1]
-                        # left_dataframe.iloc[]
-
-            # print(right_dataframe)
-            col_to_del = left_on[0] + "_y"
-            if col_to_del in left_dataframe.colonnes:
-                del left_dataframe.data[col_to_del]
-                left_dataframe.colonnes.remove(col_to_del)
-
-            return 0
+            for index, colonne in enumerate(right_dataframe.colonnes):
+                if colonne in left_dataframe.colonnes:
+                    add_suffix(colonne, index, right_dataframe, "_y")
+                    add_suffix(colonne, index, left_dataframe, "_x")
+            left_series_empty = []
+            for serie in left_dataframe:
+                left_series_empty.append(Series(data=[None] * serie.count(), name=serie.name))
+            right_series = list(right_dataframe.data.values())
+            return DataFrame(series=left_series_empty + right_series)
 
     def __str__(self):
         """
@@ -563,6 +535,8 @@ def cast_into_most_reccurent_type(elements: List) -> List:
             try:
                 if re.fullmatch(r"\d{1,2}-\d{1,2}-\d{4}", str(el)):
                     values.append(datetime.strptime(el, "%d-%m-%Y").date())
+                elif isinstance(el, None.__class__):
+                    values.append(None)
                 else:
                     values.append(type_max.__new__(type_max, el))
             except ValueError:

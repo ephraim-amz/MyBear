@@ -31,9 +31,10 @@ if __name__ == "__main__":
     # print(df_2.groupby(["name"], agg={"name": np.sum}))
     # print(df_1.groupby(by=["name"]).min())
     pdf2['date'] = pdf2['date'].astype(str)
-    print(pdf1.merge(right=pdf2, left_on="name", right_on="date", how="left"))
+    # print(pdf1.merge(right=pdf2, left_on="name", right_on="date", how="right"))
 
     print(df1.join(right_dataframe=df2, left_on="name", right_on="date"))
+    print(df1.join(right_dataframe=df2, left_on="name", right_on="date", how="right"))
     # print(df.mean())
     # df = pd.read_csv("articles.csv")
     # print(first_serie.iloc(0))

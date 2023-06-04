@@ -48,7 +48,7 @@ class Series:
             )
             raise AttributeError
 
-    def __set_name(self, name: str) -> None:
+    def set_name(self, name: str) -> None:
         """
         Setter permettant de définir l'attribut name de la classe Series
 
